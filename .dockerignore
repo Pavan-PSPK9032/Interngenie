@@ -1,0 +1,14 @@
+node_modules
+.next
+.git
+.gitignore
+*.md
+.env*
+!.env.example
+download/
+db/
+tests/
+examples/
+.zscripts/
+dev.log
+server.log

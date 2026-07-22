@@ -1,0 +1,32 @@
+{
+  "name": "InternGenie — AI Internship Recommendations",
+  "short_name": "InternGenie",
+  "description": "AI-powered internship recommendations for the PM Internship Scheme",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#ffffff",
+  "theme_color": "#10b981",
+  "categories": ["education", "business", "productivity"],
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Search Internships",
+      "url": "/?view=internships",
+      "description": "Browse and filter internships"
+    },
+    {
+      "name": "My Dashboard",
+      "url": "/?view=dashboard",
+      "description": "View your dashboard"
+    }
+  ]
+}
