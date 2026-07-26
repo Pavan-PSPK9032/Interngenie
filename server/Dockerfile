@@ -1,13 +1,7 @@
-# ─── Backend ────────────────────────────────────────────
-FROM node:20-alpine AS deps
+FROM node:20-alpine
 WORKDIR /app
-COPY server/package.json ./
-RUN npm install --production
-
-FROM node:20-alpine AS runner
-WORKDIR /app
-ENV NODE_ENV=production
-COPY --from=deps /app/node_modules ./node_modules
-COPY server/ .
+COPY package.json ./
+RUN npm install --omit=dev
+COPY . .
 EXPOSE 3001
 CMD ["node", "index.js"]
