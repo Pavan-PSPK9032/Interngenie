@@ -11,6 +11,5 @@ const certificateSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 certificateSchema.index({ userId: 1 });
-certificateSchema.index({ certificateId: 1 });
 
 module.exports = mongoose.model("Certificate", certificateSchema);
