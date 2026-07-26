@@ -4,7 +4,7 @@ import {
   User as UserIcon, Mail, Phone, GraduationCap, Code, MapPin,
   Languages, Link as LinkIcon, Upload, FileText, Sparkles,
   CheckCircle2, XCircle, Loader2, Save, Brain, Target, Award,
-  Github, Linkedin, Globe, Sparkles,
+  Github, Linkedin, Globe,
 } from "lucide-react";
 import { useApp } from "@/lib/store";
 import { useQuery, useQueryClient } from "@tanstack/react-query";

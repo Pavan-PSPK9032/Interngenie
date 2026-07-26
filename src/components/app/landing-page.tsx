@@ -4,7 +4,7 @@ import { useRef, useState, useEffect } from "react";
 import {
   Sparkles, Search, ArrowRight, Users, Building2, Briefcase,
   CheckCircle2, TrendingUp, Star, ChevronDown, Quote, Zap,
-  Brain, Target, Award, Sparkles,
+  Brain, Target, Award,
 } from "lucide-react";
 import { useApp } from "@/lib/store";
 import { Button } from "@/components/ui/button";
