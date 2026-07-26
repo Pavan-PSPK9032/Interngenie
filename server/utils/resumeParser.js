@@ -218,7 +218,7 @@ function extractSkills(sectionText) {
 function extractProjects(sectionText) {
   if (!sectionText) return [];
   const projects = [];
-  const blocks = sectionText.split(/(?=(?:^|\n)\s*(?:[-•*]\s+|[A-Z0-9])/);
+  const blocks = sectionText.split(/(?=(?:^|\n)\s*(?:[-•*]\s+|[A-Z0-9]))/);
 
   for (const block of blocks) {
     const lines = block.split("\n").filter((l) => l.trim());
