@@ -76,10 +76,10 @@ export function AuthView() {
     setLoading(true);
     const creds =
       asRole === "STUDENT"
-        ? { email: "arjun.sharma@student.edu", password: "demo" }
+        ? { email: "arjun.sharma@student.edu", password: "student123" }
         : asRole === "COMPANY"
-        ? { email: "hr@flipkart.com", password: "demo" }
-        : { email: "admin@pm-internship.gov.in", password: "demo" };
+        ? { email: "hr@flipkart.com", password: "company123" }
+        : { email: "admin@pm-internship.gov.in", password: "admin123" };
     try {
       const res = await fetch("/api/auth/login", {
         method: "POST",

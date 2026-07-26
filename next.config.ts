@@ -1,18 +1,21 @@
 import type { NextConfig } from "next";
 
+const BACKEND_URL = process.env.BACKEND_URL || "http://localhost:3001";
+
 const nextConfig: NextConfig = {
-  output: "standalone",
-  /* config options here */
   typescript: {
     ignoreBuildErrors: true,
   },
   reactStrictMode: false,
-  async redirects() {
+  async rewrites() {
     return [
+      {
+        source: "/api/:path*",
+        destination: `${BACKEND_URL}/api/:path*`,
+      },
       {
         source: "/favicon.ico",
         destination: "/icon.svg",
-        permanent: true,
       },
     ];
   },

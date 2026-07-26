@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/accordion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { TESTIMONIALS, FAQS, STATS } from "@/lib/seed-data";
+import { TESTIMONIALS, FAQS, STATS } from "@/lib/constants";
 import { useQuery } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
 

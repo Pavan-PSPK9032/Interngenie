@@ -17,7 +17,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { useState, useRef } from "react";
 import { cn } from "@/lib/utils";
-import { ALL_SKILLS, SKILL_CATEGORIES, SKILL_TAXONOMY } from "@/lib/ai-engine";
+import { ALL_SKILLS, SKILL_CATEGORIES, SKILL_TAXONOMY } from "@/lib/constants";
 
 export function StudentProfile() {
   const { user, token, updateUser, pushToast } = useApp();

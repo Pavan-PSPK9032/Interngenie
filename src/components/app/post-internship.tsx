@@ -13,7 +13,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ALL_SKILLS } from "@/lib/ai-engine";
+import { ALL_SKILLS } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 
 const DOMAINS = [
