@@ -163,16 +163,7 @@ export function AuthView() {
   const triggerGoogleSignIn = () => {
     if (!googleReady || !window.google) return;
     setGoogleLoading(true);
-    window.google.accounts.id.prompt((notification) => {
-      if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
-        setGoogleLoading(false);
-        pushToast({
-          title: "Google Sign-In",
-          message: "Google popup was blocked or not displayed. Please try again.",
-          type: "error",
-        });
-      }
-    });
+    window.google.accounts.id.prompt();
   };
 
   const submit = async (e: React.FormEvent) => {
