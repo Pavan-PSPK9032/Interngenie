@@ -1,7 +1,7 @@
 // Global app state — view router, auth, theme, saved internships, chatbot panel
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import type { Role, ViewKey, User, Notification } from "./types";
+import type { Role, ViewKey, User, Notification, ResumeData } from "./types";
 
 interface AppState {
   // Routing (single-page app view switcher)
@@ -39,6 +39,14 @@ interface AppState {
   toasts: { id: string; title: string; message?: string; type: "info" | "success" | "error" }[];
   pushToast: (t: { title: string; message?: string; type?: "info" | "success" | "error" }) => void;
   dismissToast: (id: string) => void;
+
+  // Resume Builder
+  resumeData: ResumeData | null;
+  setResumeData: (data: ResumeData) => void;
+  resumeTemplate: "classic" | "modern" | "minimal";
+  setResumeTemplate: (t: "classic" | "modern" | "minimal") => void;
+  resumeColor: string;
+  setResumeColor: (c: string) => void;
 }
 
 export const useApp = create<AppState>()(
@@ -110,6 +118,13 @@ export const useApp = create<AppState>()(
       },
       dismissToast: (id) =>
         set((s) => ({ toasts: s.toasts.filter((x) => x.id !== id) })),
+
+      resumeData: null,
+      setResumeData: (resumeData) => set({ resumeData }),
+      resumeTemplate: "modern",
+      setResumeTemplate: (resumeTemplate) => set({ resumeTemplate }),
+      resumeColor: "#059669",
+      setResumeColor: (resumeColor) => set({ resumeColor }),
     }),
     {
       name: "pm-internship-app",
@@ -118,6 +133,9 @@ export const useApp = create<AppState>()(
         token: s.token,
         theme: s.theme,
         savedInternships: s.savedInternships,
+        resumeData: s.resumeData,
+        resumeTemplate: s.resumeTemplate,
+        resumeColor: s.resumeColor,
       }),
     }
   )

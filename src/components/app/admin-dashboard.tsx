@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import {
   Users, Building2, Briefcase, FileText, TrendingUp,
   Star, CheckCircle2, Clock, PieChart as PieIcon, BarChart3,
-  Activity, MapPin, Award, Loader2, Shield,
+  Activity, MapPin, Award, Loader2, Shield, Download,
 } from "lucide-react";
 import { useApp } from "@/lib/store";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -34,6 +34,41 @@ export function AdminDashboard() {
     },
     enabled: !!user && user.role === "ADMIN",
   });
+
+  const handleExportCSV = () => {
+    const totals = (data || {}).totals || {};
+    const rows = [
+      ["Metric", "Value"],
+      ["Total Students", totals.totalStudents || 0],
+      ["Total Companies", totals.totalCompanies || 0],
+      ["Total Internships", totals.totalInternships || 0],
+      ["Total Applications", totals.totalApplications || 0],
+      ["Active Users", totals.activeUsers || 0],
+      ["Pending Companies", totals.pendingCompanies || 0],
+    ];
+    const csv = rows.map((r) => r.join(",")).join("\n");
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `interngenie-admin-export-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    pushToast({ title: "Data exported as CSV", type: "success" });
+  };
+
+  const activityLogs = [
+    { id: "1", action: "Company Approved", detail: "TechCorp India approved", time: "2 min ago", type: "success" as const },
+    { id: "2", action: "User Registered", detail: "15 new students registered", time: "15 min ago", type: "info" as const },
+    { id: "3", action: "Internship Posted", detail: "ML Engineer at DataSoft", time: "1 hr ago", type: "info" as const },
+    { id: "4", action: "Application Received", detail: "142 new applications today", time: "2 hrs ago", type: "info" as const },
+    { id: "5", action: "Company Rejected", detail: "SpamCo rejected for incomplete docs", time: "3 hrs ago", type: "warning" as const },
+    { id: "6", action: "Certificate Generated", detail: "12 certificates auto-generated", time: "4 hrs ago", type: "success" as const },
+    { id: "7", action: "User Verified", detail: "50 users verified via email", time: "5 hrs ago", type: "info" as const },
+    { id: "8", action: "Skill Trend Updated", detail: "React overtakes Python as #1", time: "6 hrs ago", type: "info" as const },
+    { id: "9", action: "Company Verified", detail: "InnovateTech verified", time: "8 hrs ago", type: "success" as const },
+    { id: "10", action: "Platform Maintenance", detail: "Scheduled maintenance completed", time: "12 hrs ago", type: "info" as const },
+  ];
 
   const { data: usersData } = useQuery({
     queryKey: ["admin-users"],
@@ -94,6 +129,25 @@ export function AdminDashboard() {
           <p className="text-white/90 mt-2">
             Real-time insights into the PM Internship Scheme ecosystem
           </p>
+          <div className="flex flex-wrap gap-2 mt-4">
+            <Button
+              onClick={() => useApp.getState().navigate("admin-reports")}
+              size="sm"
+              className="bg-white text-emerald-700 hover:bg-white/90 rounded-full gap-1.5"
+            >
+              <BarChart3 className="w-4 h-4" />
+              Full Reports
+            </Button>
+            <Button
+              onClick={handleExportCSV}
+              size="sm"
+              variant="outline"
+              className="bg-white/10 backdrop-blur text-white border-white/30 hover:bg-white/20 rounded-full gap-1.5"
+            >
+              <FileText className="w-4 h-4" />
+              Export Data
+            </Button>
+          </div>
         </div>
       </motion.div>
 
@@ -387,7 +441,7 @@ export function AdminDashboard() {
                       <Badge variant="secondary" className="text-[10px]">{u.role}</Badge>
                     </td>
                     <td className="py-3 px-2 hidden md:table-cell text-xs text-muted-foreground">
-                      {u.college || "—"}
+                      {u.college || "\u2014"}
                     </td>
                     <td className="py-3 px-2">
                       {u.isApproved ? (
@@ -406,6 +460,41 @@ export function AdminDashboard() {
                 ))}
               </tbody>
             </table>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Activity Log */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base flex items-center gap-2">
+            <Activity className="w-4 h-4 text-primary" />
+            Recent Activity
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-1">
+            {activityLogs.map((log, i) => (
+              <motion.div
+                key={log.id}
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: Math.min(i * 0.04, 0.3) }}
+                className="flex items-center gap-3 p-2 rounded-lg hover:bg-accent/50 transition-colors"
+              >
+                <div className={cn(
+                  "w-2 h-2 rounded-full shrink-0",
+                  log.type === "success" ? "bg-emerald-500" :
+                  log.type === "warning" ? "bg-amber-500" :
+                  "bg-primary"
+                )} />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium">{log.action}</p>
+                  <p className="text-xs text-muted-foreground">{log.detail}</p>
+                </div>
+                <span className="text-xs text-muted-foreground shrink-0">{log.time}</span>
+              </motion.div>
+            ))}
           </div>
         </CardContent>
       </Card>

@@ -20,6 +20,14 @@ import { CompanyApplicants } from "@/components/app/company-applicants";
 import { AdminDashboard } from "@/components/app/admin-dashboard";
 import { AdminCompanies } from "@/components/app/admin-companies";
 import { AdminUsers } from "@/components/app/admin-users";
+import { AdminReports } from "@/components/app/admin-reports";
+import { CompanySchedule } from "@/components/app/company-schedule";
+import { ResumeBuilder } from "@/components/app/resume-builder";
+import { ATSChecker } from "@/components/app/ats-checker";
+import { InterviewPrep } from "@/components/app/interview-prep";
+import { ProfileWizard } from "@/components/app/profile-wizard";
+import { VoiceAssistant } from "@/components/app/voice-assistant";
+import { ForgotPassword } from "@/components/app/forgot-password";
 
 export default function Home() {
   const { view, user, navigate } = useApp();
@@ -28,17 +36,18 @@ export default function Home() {
   useEffect(() => {
     const protectedViews = [
       "student-dashboard", "student-profile", "student-applications",
-      "company-dashboard", "company-post-internship", "company-applicants",
-      "admin-dashboard", "admin-companies", "admin-internships",
+      "company-dashboard", "company-post-internship", "company-applicants", "company-schedule",
+      "admin-dashboard", "admin-companies", "admin-internships", "admin-reports",
+      "resume-builder", "ats-checker", "interview-prep",
     ];
     if (!user && protectedViews.includes(view)) {
       navigate("auth");
     }
     // Role-based guard
     if (user) {
-      const studentViews = ["student-dashboard", "student-profile", "student-applications"];
-      const companyViews = ["company-dashboard", "company-post-internship", "company-applicants"];
-      const adminViews = ["admin-dashboard", "admin-companies", "admin-internships"];
+      const studentViews = ["student-dashboard", "student-profile", "student-applications", "resume-builder", "ats-checker", "interview-prep", "profile-wizard"];
+      const companyViews = ["company-dashboard", "company-post-internship", "company-applicants", "company-schedule"];
+      const adminViews = ["admin-dashboard", "admin-companies", "admin-internships", "admin-reports"];
       if (user.role === "STUDENT" && (companyViews.includes(view) || adminViews.includes(view))) {
         navigate("student-dashboard");
       } else if (user.role === "COMPANY" && (studentViews.includes(view) || adminViews.includes(view))) {
@@ -56,6 +65,8 @@ export default function Home() {
         return <LandingPage />;
       case "auth":
         return <AuthView />;
+      case "forgot-password":
+        return <ForgotPassword />;
       case "internships":
         return <InternshipSearch />;
       case "internship-detail":
@@ -78,6 +89,18 @@ export default function Home() {
         return user ? <AdminCompanies /> : <AuthView />;
       case "admin-internships":
         return user ? <AdminUsers /> : <AuthView />;
+      case "admin-reports":
+        return user ? <AdminReports /> : <AuthView />;
+      case "company-schedule":
+        return user ? <CompanySchedule /> : <AuthView />;
+      case "resume-builder":
+        return user ? <ResumeBuilder /> : <AuthView />;
+      case "ats-checker":
+        return user ? <ATSChecker /> : <AuthView />;
+      case "interview-prep":
+        return user ? <InterviewPrep /> : <AuthView />;
+      case "profile-wizard":
+        return user ? <ProfileWizard /> : <AuthView />;
       default:
         return <LandingPage />;
     }
@@ -90,6 +113,7 @@ export default function Home() {
       <Footer />
       <BottomNav />
       <Chatbot />
+      {user && <VoiceAssistant />}
       <ToastContainer />
     </div>
   );

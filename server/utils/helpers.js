@@ -43,4 +43,14 @@ function sanitizeUser(u) {
   };
 }
 
-module.exports = { generateToken, hashPassword, verifyPassword, sanitizeUser };
+const crypto = require("crypto");
+
+function generateResetToken() {
+  return crypto.randomBytes(32).toString("hex");
+}
+
+function generateVerificationToken() {
+  return crypto.randomBytes(32).toString("hex");
+}
+
+module.exports = { generateToken, hashPassword, verifyPassword, sanitizeUser, generateResetToken, generateVerificationToken };

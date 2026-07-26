@@ -79,3 +79,29 @@ exports.deleteUser = async (req, res, next) => {
     return res.json({ success: true });
   } catch (err) { next(err); }
 };
+
+exports.getAuditLogs = async (req, res, next) => {
+  try {
+    const AuditLog = require("../models/AuditLog");
+    const page = Math.max(1, parseInt(req.query.page) || 1);
+    const limit = Math.min(100, Math.max(1, parseInt(req.query.limit) || 20));
+    const skip = (page - 1) * limit;
+
+    const filter = {};
+    if (req.query.action) filter.action = req.query.action;
+    if (req.query.userId) filter.userId = req.query.userId;
+    if (req.query.resource) filter.resource = req.query.resource;
+
+    const [logs, total] = await Promise.all([
+      AuditLog.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit).lean(),
+      AuditLog.countDocuments(filter),
+    ]);
+
+    return res.json({
+      logs,
+      total,
+      page,
+      pages: Math.ceil(total / limit),
+    });
+  } catch (err) { next(err); }
+};

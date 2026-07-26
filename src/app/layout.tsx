@@ -74,6 +74,37 @@ export default function RootLayout({
       <head>
         <link rel="icon" href="/icon.svg" type="image/svg+xml" />
         <link rel="manifest" href="/manifest.json" />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              if ('serviceWorker' in navigator) {
+                window.addEventListener('load', function () {
+                  navigator.serviceWorker
+                    .register('/sw.js')
+                    .then(function (reg) {
+                      console.log('Service Worker registered, scope:', reg.scope);
+                      reg.addEventListener('updatefound', function () {
+                        var newWorker = reg.installing;
+                        if (newWorker) {
+                          newWorker.addEventListener('statechange', function () {
+                            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                              console.log('New service worker available. Reload to update.');
+                            }
+                          });
+                        }
+                      });
+                    })
+                    .catch(function (err) {
+                      console.error('Service Worker registration failed:', err);
+                    });
+                });
+                navigator.serviceWorker.addEventListener('controllerchange', function () {
+                  window.location.reload();
+                });
+              }
+            `,
+          }}
+        />
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-background text-foreground`}

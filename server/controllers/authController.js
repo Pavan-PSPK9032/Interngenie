@@ -1,5 +1,8 @@
+const crypto = require("crypto");
 const User = require("../models/User");
-const { generateToken, hashPassword, verifyPassword, sanitizeUser } = require("../utils/helpers");
+const Token = require("../models/Token");
+const { generateToken, hashPassword, verifyPassword, sanitizeUser, generateResetToken, generateVerificationToken } = require("../utils/helpers");
+const { sendPasswordResetEmail, sendVerificationEmail } = require("../utils/email");
 
 exports.login = async (req, res, next) => {
   try {
@@ -8,6 +11,10 @@ exports.login = async (req, res, next) => {
 
     const user = await User.findOne({ email });
     if (!user) return res.status(404).json({ error: "User not found" });
+
+    if (!user.passwordHash) {
+      return res.status(401).json({ error: "Account uses Google sign-in. Please login with Google." });
+    }
 
     if (!verifyPassword(password, user.passwordHash)) {
       return res.status(401).json({ error: "Invalid password" });
@@ -39,6 +46,144 @@ exports.register = async (req, res, next) => {
       emailVerified: true,
       profileCompleted: role === "STUDENT" ? 20 : role === "COMPANY" ? 30 : 100,
     });
+
+    const token = generateToken(user);
+    return res.json({ user: sanitizeUser(user), token });
+  } catch (err) { next(err); }
+};
+
+exports.forgotPassword = async (req, res, next) => {
+  try {
+    const { email } = req.body;
+    if (!email) return res.status(400).json({ error: "Email is required" });
+
+    const user = await User.findOne({ email });
+
+    if (user) {
+      const rawToken = generateResetToken();
+      const hashedToken = crypto.createHash("sha256").update(rawToken).digest("hex");
+
+      await Token.deleteMany({ userId: user._id.toString(), type: "password_reset" });
+
+      await Token.create({
+        userId: user._id.toString(),
+        token: hashedToken,
+        type: "password_reset",
+        expiresAt: new Date(Date.now() + 60 * 60 * 1000),
+      });
+
+      const resetUrl = `${process.env.CLIENT_URL || "http://localhost:3000"}/reset-password?token=${rawToken}`;
+      await sendPasswordResetEmail(email, resetUrl);
+    }
+
+    return res.json({ message: "If an account with that email exists, a reset link has been sent." });
+  } catch (err) { next(err); }
+};
+
+exports.resetPassword = async (req, res, next) => {
+  try {
+    const { token, password } = req.body;
+    if (!token || !password) {
+      return res.status(400).json({ error: "Token and password are required" });
+    }
+
+    const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
+
+    const tokenDoc = await Token.findOne({
+      token: hashedToken,
+      type: "password_reset",
+      used: false,
+      expiresAt: { $gt: new Date() },
+    });
+
+    if (!tokenDoc) {
+      return res.status(400).json({ error: "Invalid or expired token" });
+    }
+
+    const user = await User.findById(tokenDoc.userId);
+    if (!user) {
+      return res.status(400).json({ error: "User not found" });
+    }
+
+    user.passwordHash = hashPassword(password);
+    await user.save();
+
+    tokenDoc.used = true;
+    await tokenDoc.save();
+
+    return res.json({ message: "Password has been reset successfully" });
+  } catch (err) { next(err); }
+};
+
+exports.verifyEmail = async (req, res, next) => {
+  try {
+    const { token } = req.params;
+    if (!token) return res.status(400).json({ error: "Token is required" });
+
+    const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
+
+    const tokenDoc = await Token.findOne({
+      token: hashedToken,
+      type: "email_verification",
+      used: false,
+      expiresAt: { $gt: new Date() },
+    });
+
+    if (!tokenDoc) {
+      return res.status(400).json({ error: "Invalid or expired token" });
+    }
+
+    const user = await User.findById(tokenDoc.userId);
+    if (!user) {
+      return res.status(400).json({ error: "User not found" });
+    }
+
+    user.emailVerified = true;
+    user.isVerified = true;
+    await user.save();
+
+    tokenDoc.used = true;
+    await tokenDoc.save();
+
+    return res.json({ message: "Email verified successfully" });
+  } catch (err) { next(err); }
+};
+
+exports.googleLogin = async (req, res, next) => {
+  try {
+    const { email, name, googleId, avatarUrl } = req.body;
+    if (!email || !googleId) {
+      return res.status(400).json({ error: "Email and googleId are required" });
+    }
+
+    let user = await User.findOne({ email });
+
+    if (user) {
+      if (user.googleId && user.googleId !== googleId) {
+        return res.status(409).json({ error: "An account with this email already exists. Please login with your password." });
+      }
+      if (!user.googleId) {
+        user.googleId = googleId;
+        if (avatarUrl && !user.avatarUrl) {
+          user.avatarUrl = avatarUrl;
+        }
+        await user.save();
+      }
+    } else {
+      const randomPassword = crypto.randomBytes(32).toString("hex");
+      user = await User.create({
+        email,
+        name,
+        googleId,
+        avatarUrl: avatarUrl || undefined,
+        passwordHash: hashPassword(randomPassword),
+        role: "STUDENT",
+        isVerified: true,
+        isApproved: true,
+        emailVerified: true,
+        profileCompleted: 20,
+      });
+    }
 
     const token = generateToken(user);
     return res.json({ user: sanitizeUser(user), token });

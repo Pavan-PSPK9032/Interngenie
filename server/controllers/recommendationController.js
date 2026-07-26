@@ -62,6 +62,50 @@ exports.parseResume = async (req, res, next) => {
   } catch (err) { next(err); }
 };
 
+exports.generateCoverLetter = async (req, res, next) => {
+  try {
+    const { internshipId, studentProfile } = req.body;
+    if (!internshipId) return res.status(400).json({ error: "internshipId is required" });
+
+    const internship = await Internship.findById(internshipId).lean();
+    if (!internship) return res.status(404).json({ error: "Internship not found" });
+
+    const profile = studentProfile || {
+      name: req.user.name,
+      email: req.user.email,
+      skills: req.user.skills,
+      college: req.user.college,
+      degree: req.user.degree,
+      branch: req.user.branch,
+      graduationYear: req.user.graduationYear,
+      cgpa: req.user.cgpa,
+    };
+
+    const topSkills = (profile.skills || []).slice(0, 5).join(", ");
+    const skillHighlight = topSkills || "software development and problem-solving";
+
+    const letter = `Dear Hiring Manager,
+
+I am writing to express my strong interest in the ${internship.title} position${internship.companyId ? ` at your organization` : ""}. As a ${profile.degree || "computer science"}${profile.branch ? ` ${profile.branch}` : ""} student at ${profile.college || "my university"}${profile.cgpa ? ` with a CGPA of ${profile.cgpa}` : ""}, I am eager to apply my skills in ${skillHighlight} to contribute meaningfully to your team.
+
+Your ${internship.title} role in the ${internship.domain} domain aligns closely with my academic background and career aspirations. The${internship.description ? ` ${internship.description.slice(0, 120).trim()}${internship.description.length > 120 ? "..." : ""}` : ""} responsibilities outlined for this position resonate with my hands-on experience and learning objectives.
+
+${(profile.skills || []).length > 0 ? `My technical skill set includes ${topSkills}${(profile.skills || []).length > 5 ? ` among ${profile.skills.length} total technologies` : ""}, which I have developed through coursework, personal projects, and practical applications. I am confident that these competencies, combined with my passion for ${internship.domain || "technology"}, will enable me to deliver tangible results during the internship.` : `I am committed to rapidly acquiring the technical competencies required for this role and contributing effectively from day one.`}
+
+${internship.requirements && internship.requirements.length > 0 ? `I have reviewed the requirements for this position${internship.requirements.length <= 3 ? ` including ${internship.requirements.join(", ")}` : ""} and am confident in my ability to meet and exceed expectations.` : ""} I thrive in collaborative environments and am eager to learn from experienced professionals in your organization.
+
+I would welcome the opportunity to discuss how my background, skills, and enthusiasm align with the goals of your team. Thank you for considering my application. I look forward to the possibility of contributing to your organization.
+
+Sincerely,
+${profile.name || "Applicant"}
+${profile.email || ""}${profile.phone ? `\n${profile.phone}` : ""}`;
+
+    return res.json({ coverLetter: letter });
+  } catch (err) {
+    next(err);
+  }
+};
+
 exports.getCertificates = async (req, res, next) => {
   try {
     const Certificate = require("../models/Certificate");

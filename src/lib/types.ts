@@ -15,8 +15,16 @@ export type ViewKey =
   | "admin-dashboard"
   | "admin-companies"
   | "admin-internships"
+  | "admin-reports"
+  | "company-schedule"
   | "auth"
-  | "about";
+  | "about"
+  | "resume-builder"
+  | "ats-checker"
+  | "interview-prep"
+  | "profile-wizard"
+  | "voice-assistant"
+  | "forgot-password";
 
 export type WorkMode = "remote" | "hybrid" | "onsite";
 
@@ -170,4 +178,88 @@ export interface InternshipFeatures {
   workMode: WorkMode;
   stipend: number;
   duration: number;
+}
+
+// ─── Resume Builder Types ─────────────────────────────────────
+export interface ResumeData {
+  personal: {
+    name: string;
+    email: string;
+    phone: string;
+    address: string;
+    linkedin: string;
+    github: string;
+    portfolio: string;
+    careerObjective: string;
+  };
+  education: Array<{
+    institution: string;
+    degree: string;
+    branch: string;
+    cgpa: number;
+    startYear: number;
+    endYear: number;
+    isCurrently: boolean;
+  }>;
+  skills: Array<{
+    name: string;
+    category: string;
+    proficiency: "Beginner" | "Intermediate" | "Advanced" | "Expert";
+  }>;
+  projects: Array<{
+    title: string;
+    description: string;
+    technologies: string[];
+    url: string;
+    startDate: string;
+    endDate: string;
+  }>;
+  experience: Array<{
+    company: string;
+    role: string;
+    description: string;
+    startDate: string;
+    endDate: string;
+    isCurrently: boolean;
+    highlights: string[];
+  }>;
+  certifications: Array<{
+    name: string;
+    issuer: string;
+    date: string;
+    url: string;
+  }>;
+  languages: Array<{
+    name: string;
+    proficiency: "Native" | "Fluent" | "Intermediate" | "Beginner";
+  }>;
+  additional: {
+    achievements: string;
+    hobbies: string;
+    strengths: string;
+    references: Array<{
+      name: string;
+      title: string;
+      email: string;
+      phone: string;
+    }>;
+  };
+}
+
+export interface ATSReport {
+  score: number;
+  grade: string;
+  breakdown: Record<string, { score: number; max: number; details: string }>;
+  missingKeywords: string[];
+  suggestedSkills: string[];
+  improvements: string[];
+  bulletPointSuggestions: string[];
+  summarySuggestion: string;
+}
+
+export interface InterviewQuestion {
+  question: string;
+  type: string;
+  expectedAnswerGuide: string;
+  tips: string;
 }

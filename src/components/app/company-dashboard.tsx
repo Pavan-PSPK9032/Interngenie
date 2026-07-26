@@ -2,7 +2,8 @@
 import { motion } from "framer-motion";
 import {
   Building2, Briefcase, Users, TrendingUp, Plus, ArrowRight,
-  Eye, Star, IndianRupee, Calendar, Loader2, Award,
+  Eye, Star, IndianRupee, Calendar, Loader2, Award, Clock,
+  BarChart3, Sparkles, FileText,
 } from "lucide-react";
 import { useApp } from "@/lib/store";
 import { useQuery } from "@tanstack/react-query";
@@ -95,6 +96,15 @@ export function CompanyDashboard() {
                 <Users className="w-4 h-4" />
                 View Applicants
               </Button>
+              <Button
+                onClick={() => navigate("company-schedule")}
+                size="sm"
+                variant="outline"
+                className="bg-white/10 backdrop-blur text-white border-white/30 hover:bg-white/20 rounded-full gap-1.5"
+              >
+                <Calendar className="w-4 h-4" />
+                Schedule Interviews
+              </Button>
             </div>
           </div>
           <div className="hidden md:flex flex-col items-center justify-center bg-white/10 backdrop-blur rounded-2xl p-5 border border-white/20">
@@ -108,12 +118,13 @@ export function CompanyDashboard() {
       </motion.div>
 
       {/* Stat cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-4">
         {[
           { label: "Active Internships", value: myInternships.length, icon: Briefcase, color: "from-emerald-500 to-teal-600" },
           { label: "Total Applications", value: totalApps, icon: Users, color: "from-amber-500 to-orange-600" },
           { label: "Shortlisted", value: shortlisted, icon: Star, color: "from-pink-500 to-rose-600" },
-          { label: "Avg Match Score", value: `${avgMatch}%`, icon: TrendingUp, color: "from-cyan-500 to-blue-600" },
+          { label: "Avg ATS Score", value: `${avgMatch}%`, icon: BarChart3, color: "from-violet-500 to-purple-600" },
+          { label: "Interviews", value: applications.filter((a: any) => a.status === "INTERVIEW").length, icon: Calendar, color: "from-cyan-500 to-blue-600" },
         ].map((stat, i) => (
           <motion.div
             key={i}
@@ -134,7 +145,87 @@ export function CompanyDashboard() {
         ))}
       </div>
 
+      {/* Quick Links */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        {[
+          { label: "Post Internship", view: "company-post-internship" as const, icon: Plus, color: "from-emerald-500 to-teal-600" },
+          { label: "View Applicants", view: "company-applicants" as const, icon: Users, color: "from-amber-500 to-orange-600" },
+          { label: "Schedule Interviews", view: "company-schedule" as const, icon: Calendar, color: "from-cyan-500 to-blue-600" },
+          { label: "Interview Schedule", view: "company-schedule" as const, icon: Clock, color: "from-violet-500 to-purple-600" },
+        ].map((link, i) => (
+          <motion.button
+            key={i}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: i * 0.05 }}
+            onClick={() => navigate(link.view)}
+            className="group"
+          >
+            <Card className="hover:shadow-premium transition-all cursor-pointer h-full">
+              <CardContent className="p-4 flex items-center gap-3">
+                <div className={cn("w-10 h-10 rounded-xl bg-gradient-to-br flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform", link.color)}>
+                  <link.icon className="w-5 h-5 text-white" />
+                </div>
+                <div className="text-left">
+                  <p className="text-sm font-semibold">{link.label}</p>
+                  <ArrowRight className="w-3.5 h-3.5 text-muted-foreground group-hover:text-primary transition-colors" />
+                </div>
+              </CardContent>
+            </Card>
+          </motion.button>
+        ))}
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Recent Activity Timeline */}
+        <div className="space-y-4">
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base flex items-center gap-2">
+                <Clock className="w-4 h-4 text-primary" />
+                Recent Activity
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-0">
+              {(() => {
+                const recentApps = [...applications]
+                  .sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+                  .slice(0, 5);
+                if (recentApps.length === 0) {
+                  return <p className="text-xs text-muted-foreground text-center py-4">No activity yet</p>;
+                }
+                return recentApps.map((app: any, i: number) => (
+                  <div key={app.id} className="flex gap-3 py-2.5 relative">
+                    {i < recentApps.length - 1 && (
+                      <div className="absolute left-[7px] top-8 w-px h-[calc(100%-12px)] bg-border/40" />
+                    )}
+                    <div className="w-[15px] h-[15px] rounded-full bg-primary/20 border-2 border-primary shrink-0 mt-0.5" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-medium truncate">
+                        {app.student?.name || "Student"} applied for {app.internship?.title}
+                      </p>
+                      <p className="text-[10px] text-muted-foreground">
+                        {new Date(app.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}
+                        {" \u00b7 "}
+                        <Badge className={cn(
+                          "text-[9px] px-1 py-0",
+                          app.status === "SELECTED" && "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400",
+                          app.status === "INTERVIEW" && "bg-blue-500/10 text-blue-700 dark:text-blue-400",
+                          app.status === "REVIEW" && "bg-amber-500/10 text-amber-700 dark:text-amber-400",
+                          app.status === "REJECTED" && "bg-red-500/10 text-red-700 dark:text-red-400",
+                          app.status === "APPLIED" && "bg-muted text-muted-foreground"
+                        )}>
+                          {app.status}
+                        </Badge>
+                      </p>
+                    </div>
+                  </div>
+                ));
+              })()}
+            </CardContent>
+          </Card>
+        </div>
+
         {/* My internships */}
         <div className="lg:col-span-2 space-y-4">
           <div className="flex items-center justify-between">

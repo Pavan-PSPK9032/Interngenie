@@ -4,6 +4,7 @@ import {
   Sparkles, Search, Bell, Sun, Moon, Menu, X,
   LayoutDashboard, Briefcase, User as UserIcon, LogOut,
   ChevronDown, Building2, Shield, Heart, Bookmark,
+  FileText, ClipboardCheck, MessageSquare, Calendar, BarChart3,
 } from "lucide-react";
 import { useState } from "react";
 import { useApp } from "@/lib/store";
@@ -35,12 +36,18 @@ export function Navbar() {
   if (user?.role === "STUDENT") {
     navLinks.push({ label: "Dashboard", view: "student-dashboard", icon: LayoutDashboard });
     navLinks.push({ label: "Applications", view: "student-applications", icon: Bookmark });
+    navLinks.push({ label: "Resume", view: "resume-builder", icon: FileText });
+    navLinks.push({ label: "ATS Check", view: "ats-checker", icon: ClipboardCheck });
+    navLinks.push({ label: "Interview", view: "interview-prep", icon: MessageSquare });
+    navLinks.push({ label: "Profile Setup", view: "profile-wizard", icon: Wand2 });
   } else if (user?.role === "COMPANY") {
     navLinks.push({ label: "Dashboard", view: "company-dashboard", icon: LayoutDashboard });
     navLinks.push({ label: "Post Internship", view: "company-post-internship", icon: Briefcase });
+    navLinks.push({ label: "Schedule", view: "company-schedule", icon: Calendar });
   } else if (user?.role === "ADMIN") {
     navLinks.push({ label: "Dashboard", view: "admin-dashboard", icon: LayoutDashboard });
     navLinks.push({ label: "Companies", view: "admin-companies", icon: Building2 });
+    navLinks.push({ label: "Reports", view: "admin-reports", icon: BarChart3 });
   }
 
   const handleNav = (v: any) => {
@@ -215,6 +222,9 @@ export function Navbar() {
                         <>
                           <DropdownMenuItem onClick={() => handleNav("student-profile")}>
                             <UserIcon className="w-4 h-4 mr-2" /> My Profile
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleNav("profile-wizard")}>
+                            <Wand2 className="w-4 h-4 mr-2" /> Profile Setup
                           </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => handleNav("student-applications")}>
                             <Briefcase className="w-4 h-4 mr-2" /> Applications
