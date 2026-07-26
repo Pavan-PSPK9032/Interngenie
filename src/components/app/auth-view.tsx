@@ -70,7 +70,9 @@ export function AuthView() {
     password: "",
   });
 
-  const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "";
+  const rawGoogleId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "";
+  const isValidGoogleId = rawGoogleId && !rawGoogleId.startsWith("your-") && rawGoogleId.endsWith(".apps.googleusercontent.com") && rawGoogleId.length > 40;
+  const GOOGLE_CLIENT_ID = isValidGoogleId ? rawGoogleId : "";
 
   const roles: { value: Role; label: string; icon: typeof GraduationCap; desc: string }[] = [
     { value: "STUDENT", label: "Student", icon: GraduationCap, desc: "Find & apply to internships" },
@@ -150,6 +152,7 @@ export function AuthView() {
       window.google.accounts.id.initialize({
         client_id: GOOGLE_CLIENT_ID,
         callback: handleCredentialResponse,
+        use_fedcm_for_prompt: true,
       });
       setGoogleReady(true);
     } catch {
