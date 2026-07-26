@@ -7,6 +7,15 @@ const nextConfig: NextConfig = {
     ignoreBuildErrors: true,
   },
   reactStrictMode: false,
+  async redirects() {
+    return [
+      {
+        source: "/favicon.ico",
+        destination: "/icon.svg",
+        permanent: true,
+      },
+    ];
+  },
 };
 
 export default nextConfig;
