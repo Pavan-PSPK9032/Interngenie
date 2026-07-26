@@ -108,15 +108,18 @@ function UploadTab({ resumeData, navigate, token, pushToast }: {
         reader.onload = async (e) => {
           const text = e.target?.result as string;
           setResumeText(text);
-          await uploadAndParse(text, ext!);
+          await uploadAndParse(text, "", file.name);
           setLoading(false);
         };
         reader.readAsText(file);
       } else {
-        const text = extractTextFromFile(file);
-        setResumeText(text);
-        await uploadAndParse(text, ext!);
-        setLoading(false);
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+          const base64 = (e.target?.result as string).split(",")[1];
+          await uploadAndParse("", ext!, file.name, base64);
+          setLoading(false);
+        };
+        reader.readAsDataURL(file);
       }
     } catch {
       pushToast({ title: "Parse failed", message: "Could not read file", type: "error" });
@@ -124,22 +127,23 @@ function UploadTab({ resumeData, navigate, token, pushToast }: {
     }
   };
 
-  const extractTextFromFile = (file: File): string => {
-    const name = file.name.replace(/\.[^.]+$/, "").replace(/[_-]/g, " ");
-    return `Resume: ${name}\n\nNote: For PDF/DOCX files, the text extraction happens on the backend.\nThe file "${file.name}" has been selected for upload.\n\nPlease paste the resume text manually for best results, or use the Resume Builder to create an ATS-optimized resume.`;
-  };
-
-  const uploadAndParse = async (text: string, type: string) => {
+  const uploadAndParse = async (text: string, type: string, fileName?: string, fileBase64?: string) => {
     try {
+      const body: Record<string, string> = {};
+      if (text) body.text = text;
+      if (type) body.type = type;
+      if (fileName) body.fileName = fileName;
+      if (fileBase64) body.fileBase64 = fileBase64;
+
       const res = await fetch("/api/resume/upload", {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ text, type }),
+        body: JSON.stringify(body),
       });
       const data = await res.json();
       if (res.ok && data.parsed) {
         setParsed(data.parsed);
-        setResumeText(text);
+        if (data.resumeText) setResumeText(data.resumeText);
         pushToast({ title: "Resume parsed successfully", type: "success" });
       } else {
         pushToast({ title: "Parse error", message: data.error, type: "error" });

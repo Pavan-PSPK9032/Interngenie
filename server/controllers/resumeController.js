@@ -3,20 +3,50 @@ const { parseResume } = require("../utils/resumeParser");
 
 exports.uploadAndParse = async (req, res, next) => {
   try {
-    const { text, type } = req.body;
-    if (!text || text.trim().length < 20) {
+    const { text, type, fileBase64, fileName } = req.body;
+
+    let resumeText = text || "";
+
+    if (fileBase64 && fileName) {
+      const ext = fileName.split(".").pop().toLowerCase();
+      const buffer = Buffer.from(fileBase64, "base64");
+
+      if (ext === "pdf") {
+        try {
+          const pdfParse = require("pdf-parse");
+          const data = await pdfParse(buffer);
+          resumeText = data.text || "";
+        } catch {
+          return res.status(400).json({ error: "Failed to parse PDF file" });
+        }
+      } else if (ext === "docx") {
+        try {
+          const mammoth = require("mammoth");
+          const result = await mammoth.extractRawText({ buffer });
+          resumeText = result.value || "";
+        } catch {
+          return res.status(400).json({ error: "Failed to parse DOCX file" });
+        }
+      } else if (ext === "txt") {
+        resumeText = buffer.toString("utf-8");
+      } else {
+        return res.status(400).json({ error: `Unsupported file type: .${ext}` });
+      }
+    }
+
+    if (!resumeText || resumeText.trim().length < 20) {
       return res.status(400).json({ error: "Resume text is too short (minimum 20 characters)" });
     }
 
-    const parsed = parseResume(text);
+    const parsed = parseResume(resumeText);
 
     await User.findByIdAndUpdate(req.user.id, {
-      resumeText: text,
+      resumeText,
       resumeData: parsed,
       extractedSkills: parsed.skills.map((s) => s.name),
     });
 
-    return res.json({ parsed });
+    return res.json({ parsed, resumeText });
   } catch (err) {
     next(err);
   }
