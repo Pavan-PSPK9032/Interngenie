@@ -4,7 +4,7 @@ import {
   User as UserIcon, Mail, Phone, GraduationCap, Code, MapPin,
   Languages, Link as LinkIcon, Upload, FileText, Sparkles,
   CheckCircle2, XCircle, Loader2, Save, Brain, Target, Award,
-  Github, Linkedin, Globe, Wand2,
+  Github, Linkedin, Globe, Sparkles,
 } from "lucide-react";
 import { useApp } from "@/lib/store";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -344,7 +344,7 @@ export function StudentProfile() {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-lg">
-                <Wand2 className="w-5 h-5 text-primary" />
+                <Sparkles className="w-5 h-5 text-primary" />
                 AI Resume Parser
               </CardTitle>
             </CardHeader>

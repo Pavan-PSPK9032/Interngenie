@@ -4,7 +4,7 @@ import { useRef, useState, useEffect } from "react";
 import {
   Sparkles, Search, ArrowRight, Users, Building2, Briefcase,
   CheckCircle2, TrendingUp, Star, ChevronDown, Quote, Zap,
-  Brain, Target, Award, Wand2,
+  Brain, Target, Award, Sparkles,
 } from "lucide-react";
 import { useApp } from "@/lib/store";
 import { Button } from "@/components/ui/button";
@@ -183,7 +183,7 @@ export function LandingPage() {
                 { icon: Brain, label: "AI Matching", color: "from-emerald-500 to-teal-600", delay: 0 },
                 { icon: Target, label: "Skill Gap Analysis", color: "from-amber-500 to-orange-600", delay: 0.5 },
                 { icon: Award, label: "Verified Certificates", color: "from-pink-500 to-rose-600", delay: 1 },
-                { icon: Wand2, label: "Resume Builder", color: "from-cyan-500 to-blue-600", delay: 1.5 },
+                { icon: Sparkles, label: "Resume Builder", color: "from-cyan-500 to-blue-600", delay: 1.5 },
               ].map((card, i) => (
                 <motion.div
                   key={i}
@@ -286,7 +286,7 @@ export function LandingPage() {
               {
                 title: "Resume Parser",
                 desc: "AI extracts skills, education, projects, and experience automatically using NER + keyword extraction.",
-                icon: Wand2,
+                icon: Sparkles,
                 gradient: "from-emerald-500 to-teal-600",
               },
               {

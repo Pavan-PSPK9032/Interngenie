@@ -39,7 +39,7 @@ export function Navbar() {
     navLinks.push({ label: "Resume", view: "resume-builder", icon: FileText });
     navLinks.push({ label: "ATS Check", view: "ats-checker", icon: ClipboardCheck });
     navLinks.push({ label: "Interview", view: "interview-prep", icon: MessageSquare });
-    navLinks.push({ label: "Profile Setup", view: "profile-wizard", icon: Wand2 });
+    navLinks.push({ label: "Profile Setup", view: "profile-wizard", icon: Sparkles });
   } else if (user?.role === "COMPANY") {
     navLinks.push({ label: "Dashboard", view: "company-dashboard", icon: LayoutDashboard });
     navLinks.push({ label: "Post Internship", view: "company-post-internship", icon: Briefcase });
@@ -224,7 +224,7 @@ export function Navbar() {
                             <UserIcon className="w-4 h-4 mr-2" /> My Profile
                           </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => handleNav("profile-wizard")}>
-                            <Wand2 className="w-4 h-4 mr-2" /> Profile Setup
+                            <Sparkles className="w-4 h-4 mr-2" /> Profile Setup
                           </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => handleNav("student-applications")}>
                             <Briefcase className="w-4 h-4 mr-2" /> Applications
