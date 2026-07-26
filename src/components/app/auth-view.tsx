@@ -152,7 +152,8 @@ export function AuthView() {
       window.google.accounts.id.initialize({
         client_id: GOOGLE_CLIENT_ID,
         callback: handleCredentialResponse,
-        use_fedcm_for_prompt: true,
+        auto_select: false,
+        cancel_on_tap_outside: true,
       });
       setGoogleReady(true);
     } catch {
@@ -163,7 +164,18 @@ export function AuthView() {
   const triggerGoogleSignIn = () => {
     if (!googleReady || !window.google) return;
     setGoogleLoading(true);
-    window.google.accounts.id.prompt();
+
+    const timeout = setTimeout(() => {
+      setGoogleLoading(false);
+    }, 8000);
+
+    window.google.accounts.id.prompt((notification) => {
+      clearTimeout(timeout);
+      if (!notification) return;
+      if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+        setGoogleLoading(false);
+      }
+    });
   };
 
   const submit = async (e: React.FormEvent) => {
