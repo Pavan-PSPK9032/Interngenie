@@ -8,6 +8,8 @@ const applicationSchema = new mongoose.Schema({
   matchingSkills: { type: [String], default: [] },
   missingSkills: { type: [String], default: [] },
   coverLetter: { type: String },
+  resumeText: { type: String },
+  atsScoreAtApply: { type: Number },
   interviewScheduledAt: { type: Date },
   feedback: { type: String },
 }, { timestamps: true });

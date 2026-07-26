@@ -4,7 +4,7 @@ const notificationSchema = new mongoose.Schema({
   userId: { type: String, required: true, ref: "User" },
   title: { type: String, required: true },
   message: { type: String, required: true },
-  type: { type: String, enum: ["INFO", "SUCCESS", "WARNING", "INTERVIEW", "APPLICATION"], default: "INFO" },
+  type: { type: String, enum: ["INFO", "SUCCESS", "WARNING", "INTERVIEW", "APPLICATION", "RESUME", "ATS", "CERTIFICATE"], default: "INFO" },
   read: { type: Boolean, default: false },
 }, { timestamps: true });
 

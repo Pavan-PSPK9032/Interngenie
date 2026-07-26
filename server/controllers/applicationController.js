@@ -3,6 +3,7 @@ const Internship = require("../models/Internship");
 const Company = require("../models/Company");
 const Notification = require("../models/Notification");
 const Certificate = require("../models/Certificate");
+const ATSReport = require("../models/ATSReport");
 const { computeMatch } = require("../utils/aiEngine");
 
 exports.getAll = async (req, res, next) => {
@@ -20,6 +21,18 @@ exports.getAll = async (req, res, next) => {
       apps = await Application.find().sort({ createdAt: -1 }).lean();
     }
 
+    // Populate ATS scores for company/admin views
+    let atsScoreMap = {};
+    if (user.role !== "STUDENT") {
+      const studentIds = [...new Set(apps.map((a) => a.studentId))];
+      const latestReports = await ATSReport.aggregate([
+        { $match: { userId: { $in: studentIds } } },
+        { $sort: { createdAt: -1 } },
+        { $group: { _id: "$userId", score: { $first: "$score" } } },
+      ]);
+      latestReports.forEach((r) => { atsScoreMap[r._id] = r.score; });
+    }
+
     // Populate internship and company info
     const internshipIds = [...new Set(apps.map((a) => a.internshipId))];
     const internships = await Internship.find({ _id: { $in: internshipIds } }).lean();
@@ -34,9 +47,9 @@ exports.getAll = async (req, res, next) => {
     // Populate student info (for company/admin views)
     let studentMap = {};
     if (user.role !== "STUDENT") {
-      const studentIds = [...new Set(apps.map((a) => a.studentId))];
+      const stdIds = [...new Set(apps.map((a) => a.studentId))];
       const { default: User } = require("../models/User");
-      const students = await User.find({ _id: { $in: studentIds } }).lean();
+      const students = await User.find({ _id: { $in: stdIds } }).lean();
       students.forEach((s) => { studentMap[s._id.toString()] = s; });
     }
 
@@ -48,7 +61,8 @@ exports.getAll = async (req, res, next) => {
         return {
           id: a._id.toString(), internshipId: a.internshipId, studentId: a.studentId,
           status: a.status, matchScore: a.matchScore, matchingSkills: a.matchingSkills || [], missingSkills: a.missingSkills || [],
-          coverLetter: a.coverLetter || undefined,
+          coverLetter: a.coverLetter || undefined, atsScoreAtApply: a.atsScoreAtApply || undefined,
+          candidateAtsScore: atsScoreMap[a.studentId] || null,
           interviewScheduledAt: a.interviewScheduledAt ? new Date(a.interviewScheduledAt).toISOString() : undefined,
           feedback: a.feedback || undefined, createdAt: new Date(a.createdAt).toISOString(),
           internship: internship ? {
@@ -80,14 +94,43 @@ exports.apply = async (req, res, next) => {
       { id: internship._id.toString(), skills: internship.skills || [], domain: internship.domain, location: internship.location, workMode: internship.workMode, stipend: internship.stipend, duration: internship.duration }
     );
 
+    // Check user's resume and ATS score
+    const { default: User } = require("../models/User");
+    const userDoc = await User.findById(req.user.id).lean();
+    const resumeText = userDoc?.resumeText || null;
+
+    let atsScoreAtApply = null;
+    let atsWarning = null;
+
+    if (resumeText) {
+      const latestReport = await ATSReport.findOne({ userId: req.user.id }).sort({ createdAt: -1 }).lean();
+      if (latestReport && typeof latestReport.score === "number") {
+        atsScoreAtApply = latestReport.score;
+        if (latestReport.score < 60) {
+          atsWarning = {
+            score: latestReport.score,
+            message: `Your ATS score is ${latestReport.score}%. Consider improving your resume before applying for better chances.`,
+          };
+        }
+      }
+    }
+
     const app = await Application.create({
       internshipId, studentId: req.user.id, status: "APPLIED",
-      matchScore: match.score, matchingSkills: match.matchingSkills, missingSkills: match.missingSkills, coverLetter: coverLetter || null,
+      matchScore: match.score, matchingSkills: match.matchingSkills, missingSkills: match.missingSkills,
+      coverLetter: coverLetter || null,
+      resumeText: resumeText || null,
+      atsScoreAtApply,
     });
 
-    await Notification.create({ userId: req.user.id, title: "Application submitted", message: `You applied for ${internship.title}. Match score: ${match.score}%`, type: "APPLICATION" });
+    await Notification.create({
+      userId: req.user.id,
+      title: "Application Submitted",
+      message: `You applied for ${internship.title}. Match score: ${match.score}%`,
+      type: "APPLICATION",
+    });
 
-    return res.json({ application: app, match });
+    return res.json({ application: app, match, atsWarning });
   } catch (err) { next(err); }
 };
 

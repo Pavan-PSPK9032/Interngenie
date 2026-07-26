@@ -21,6 +21,7 @@ import { AdminDashboard } from "@/components/app/admin-dashboard";
 import { AdminCompanies } from "@/components/app/admin-companies";
 import { AdminUsers } from "@/components/app/admin-users";
 import { AdminReports } from "@/components/app/admin-reports";
+import { AdminAIDashboard } from "@/components/app/admin-ai-dashboard";
 import { CompanySchedule } from "@/components/app/company-schedule";
 import { ResumeBuilder } from "@/components/app/resume-builder";
 import { ATSChecker } from "@/components/app/ats-checker";
@@ -37,7 +38,7 @@ export default function Home() {
     const protectedViews = [
       "student-dashboard", "student-profile", "student-applications",
       "company-dashboard", "company-post-internship", "company-applicants", "company-schedule",
-      "admin-dashboard", "admin-companies", "admin-internships", "admin-reports",
+      "admin-dashboard", "admin-companies", "admin-internships", "admin-reports", "admin-ai-dashboard",
       "resume-builder", "ats-checker", "interview-prep",
     ];
     if (!user && protectedViews.includes(view)) {
@@ -47,7 +48,7 @@ export default function Home() {
     if (user) {
       const studentViews = ["student-dashboard", "student-profile", "student-applications", "resume-builder", "ats-checker", "interview-prep", "profile-wizard"];
       const companyViews = ["company-dashboard", "company-post-internship", "company-applicants", "company-schedule"];
-      const adminViews = ["admin-dashboard", "admin-companies", "admin-internships", "admin-reports"];
+      const adminViews = ["admin-dashboard", "admin-companies", "admin-internships", "admin-reports", "admin-ai-dashboard"];
       if (user.role === "STUDENT" && (companyViews.includes(view) || adminViews.includes(view))) {
         navigate("student-dashboard");
       } else if (user.role === "COMPANY" && (studentViews.includes(view) || adminViews.includes(view))) {
@@ -91,6 +92,8 @@ export default function Home() {
         return user ? <AdminUsers /> : <AuthView />;
       case "admin-reports":
         return user ? <AdminReports /> : <AuthView />;
+      case "admin-ai-dashboard":
+        return user ? <AdminAIDashboard /> : <AuthView />;
       case "company-schedule":
         return user ? <CompanySchedule /> : <AuthView />;
       case "resume-builder":

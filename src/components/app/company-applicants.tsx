@@ -1,10 +1,11 @@
 "use client";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
 import {
-  Users, Star, ArrowRight, Mail, Phone, GraduationCap,
-  Linkedin, Github, Globe, CheckCircle2, XCircle, Clock,
-  Loader2, Award, FileText, Sparkles,
+  Users, Star, Mail, Phone, GraduationCap,
+  Linkedin, Github, CheckCircle2, XCircle, Clock,
+  Award, FileText, Sparkles, ChevronDown, ChevronUp,
+  Target, AlertTriangle, Eye, X,
 } from "lucide-react";
 import { useApp } from "@/lib/store";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -15,12 +16,18 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 
+type SortMode = "match" | "ats";
+
 export function CompanyApplicants() {
   const { user, token, selectedApplicantInternshipId } = useApp();
   const queryClient = useQueryClient();
   const [selectedInternship, setSelectedInternship] = useState<string>(
     selectedApplicantInternshipId || "ALL"
   );
+  const [sortBy, setSortBy] = useState<SortMode>("match");
+  const [showHighATSOnly, setShowHighATSOnly] = useState(false);
+  const [expandedAnalysis, setExpandedAnalysis] = useState<Record<string, boolean>>({});
+  const [resumeModalApp, setResumeModalApp] = useState<any>(null);
 
   const { data, isLoading } = useQuery({
     queryKey: ["company-applications", user?.id],
@@ -33,7 +40,6 @@ export function CompanyApplicants() {
     enabled: !!user,
   });
 
-  // Fetch all internships (to filter by company)
   const { data: intData } = useQuery({
     queryKey: ["all-internships"],
     queryFn: async () => {
@@ -50,9 +56,15 @@ export function CompanyApplicants() {
   if (selectedInternship !== "ALL") {
     applications = applications.filter((a: any) => a.internshipId === selectedInternship);
   }
+  if (showHighATSOnly) {
+    applications = applications.filter((a: any) => a.candidateAtsScore !== null && a.candidateAtsScore > 80);
+  }
 
-  // Sort by match score
-  applications = [...applications].sort((a: any, b: any) => b.matchScore - a.matchScore);
+  if (sortBy === "ats") {
+    applications = [...applications].sort((a: any, b: any) => (b.candidateAtsScore || 0) - (a.candidateAtsScore || 0));
+  } else {
+    applications = [...applications].sort((a: any, b: any) => b.matchScore - a.matchScore);
+  }
 
   const updateStatus = async (appId: string, status: string) => {
     try {
@@ -77,26 +89,60 @@ export function CompanyApplicants() {
     } catch {}
   };
 
+  const getATSBadgeColor = (score: number | null) => {
+    if (score === null) return "bg-muted text-muted-foreground";
+    if (score > 80) return "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400";
+    if (score >= 60) return "bg-amber-500/10 text-amber-700 dark:text-amber-400";
+    return "bg-red-500/10 text-red-700 dark:text-red-400";
+  };
+
+  const toggleAnalysis = (id: string) => {
+    setExpandedAnalysis((prev) => ({ ...prev, [id]: !prev[id] }));
+  };
+
   return (
     <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-6 md:py-10 space-y-6">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Applicants</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            AI-ranked candidates with match scores and skill breakdowns
+            AI-ranked candidates with ATS scores, match analysis and resume insights
           </p>
         </div>
-        <Select value={selectedInternship} onValueChange={setSelectedInternship}>
-          <SelectTrigger className="md:w-72">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="ALL">All internships</SelectItem>
-            {myInternships.map((i: any) => (
-              <SelectItem key={i.id} value={i.id}>{i.title}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <div className="flex flex-wrap items-center gap-2">
+          <Select value={selectedInternship} onValueChange={setSelectedInternship}>
+            <SelectTrigger className="w-56">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="ALL">All internships</SelectItem>
+              {myInternships.map((i: any) => (
+                <SelectItem key={i.id} value={i.id}>{i.title}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={sortBy} onValueChange={(v) => setSortBy(v as SortMode)}>
+            <SelectTrigger className="w-44">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="match">Sort by Match</SelectItem>
+              <SelectItem value="ats">Sort by ATS Score</SelectItem>
+            </SelectContent>
+          </Select>
+          <Button
+            size="sm"
+            variant={showHighATSOnly ? "default" : "outline"}
+            onClick={() => setShowHighATSOnly(!showHighATSOnly)}
+            className={cn(
+              "gap-1.5 text-xs",
+              showHighATSOnly && "gradient-emerald text-white"
+            )}
+          >
+            <Target className="w-3.5 h-3.5" />
+            High ATS (&gt;80)
+          </Button>
+        </div>
       </div>
 
       {isLoading ? (
@@ -111,7 +157,7 @@ export function CompanyApplicants() {
             <Users className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
             <p className="font-semibold">No applicants yet</p>
             <p className="text-sm text-muted-foreground mt-1">
-              Applicants will appear here once students apply to your internships
+              {showHighATSOnly ? "No applicants with high ATS scores found" : "Applicants will appear here once students apply to your internships"}
             </p>
           </CardContent>
         </Card>
@@ -127,7 +173,6 @@ export function CompanyApplicants() {
               <Card className="hover:shadow-premium transition-all">
                 <CardContent className="p-5">
                   <div className="flex items-start gap-4">
-                    {/* Avatar */}
                     <Avatar className="w-12 h-12 gradient-emerald shrink-0">
                       <AvatarFallback className="text-white font-bold">
                         {app.student?.name?.charAt(0) || "S"}
@@ -135,7 +180,6 @@ export function CompanyApplicants() {
                     </Avatar>
 
                     <div className="flex-1 min-w-0">
-                      {/* Header */}
                       <div className="flex items-start justify-between gap-2 mb-1">
                         <div className="min-w-0 flex-1">
                           <p className="font-semibold text-base">{app.student?.name}</p>
@@ -143,21 +187,28 @@ export function CompanyApplicants() {
                             {app.internship?.title} · Applied {new Date(app.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}
                           </p>
                         </div>
-                        <Badge
-                          className={cn(
-                            "text-xs shrink-0",
-                            app.status === "SELECTED" && "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400",
-                            app.status === "REJECTED" && "bg-red-500/10 text-red-700 dark:text-red-400",
-                            app.status === "INTERVIEW" && "bg-blue-500/10 text-blue-700 dark:text-blue-400",
-                            app.status === "REVIEW" && "bg-amber-500/10 text-amber-700 dark:text-amber-400",
-                            app.status === "APPLIED" && "bg-muted text-muted-foreground"
+                        <div className="flex items-center gap-2 shrink-0">
+                          {app.candidateAtsScore !== null && app.candidateAtsScore !== undefined && (
+                            <Badge className={cn("text-xs gap-1", getATSBadgeColor(app.candidateAtsScore))}>
+                              <Target className="w-3 h-3" />
+                              ATS {app.candidateAtsScore}%
+                            </Badge>
                           )}
-                        >
-                          {app.status}
-                        </Badge>
+                          <Badge
+                            className={cn(
+                              "text-xs",
+                              app.status === "SELECTED" && "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400",
+                              app.status === "REJECTED" && "bg-red-500/10 text-red-700 dark:text-red-400",
+                              app.status === "INTERVIEW" && "bg-blue-500/10 text-blue-700 dark:text-blue-400",
+                              app.status === "REVIEW" && "bg-amber-500/10 text-amber-700 dark:text-amber-400",
+                              app.status === "APPLIED" && "bg-muted text-muted-foreground"
+                            )}
+                          >
+                            {app.status}
+                          </Badge>
+                        </div>
                       </div>
 
-                      {/* Student info */}
                       <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground mb-3">
                         {app.student?.college && (
                           <span className="flex items-center gap-1">
@@ -213,15 +264,82 @@ export function CompanyApplicants() {
                       <div className="flex flex-wrap gap-1 mb-3">
                         {app.matchingSkills?.slice(0, 4).map((s: string) => (
                           <span key={s} className="text-[10px] px-1.5 py-0.5 rounded-md bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 font-medium">
-                            ✓ {s}
+                            + {s}
                           </span>
                         ))}
                         {app.missingSkills?.slice(0, 2).map((s: string) => (
                           <span key={s} className="text-[10px] px-1.5 py-0.5 rounded-md bg-amber-500/10 text-amber-700 dark:text-amber-400 font-medium">
-                            + {s}
+                            - {s}
                           </span>
                         ))}
                       </div>
+
+                      {/* Expandable ATS Resume Analysis */}
+                      {app.candidateAtsScore !== null && app.candidateAtsScore !== undefined && (
+                        <div className="mb-3">
+                          <button
+                            onClick={() => toggleAnalysis(app.id)}
+                            className="flex items-center gap-1.5 text-xs text-primary hover:underline mb-1"
+                          >
+                            {expandedAnalysis[app.id] ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                            View Resume Analysis
+                          </button>
+                          <AnimatePresence>
+                            {expandedAnalysis[app.id] && (
+                              <motion.div
+                                initial={{ height: 0, opacity: 0 }}
+                                animate={{ height: "auto", opacity: 1 }}
+                                exit={{ height: 0, opacity: 0 }}
+                                transition={{ duration: 0.2 }}
+                                className="overflow-hidden"
+                              >
+                                <div className="p-3 rounded-xl bg-muted/50 border border-border/40 space-y-3">
+                                  <div className="flex items-center justify-between">
+                                    <span className="text-xs font-medium">Skill Match</span>
+                                    <span className={cn(
+                                      "text-xs font-bold",
+                                      app.matchScore >= 80 ? "text-emerald-600" :
+                                      app.matchScore >= 60 ? "text-amber-600" : "text-red-600"
+                                    )}>
+                                      {app.matchScore}%
+                                    </span>
+                                  </div>
+                                  {app.matchingSkills?.length > 0 && (
+                                    <div>
+                                      <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Strengths</p>
+                                      <div className="flex flex-wrap gap-1">
+                                        {app.matchingSkills.map((s: string) => (
+                                          <span key={s} className="text-[10px] px-1.5 py-0.5 rounded-md bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 font-medium">
+                                            {s}
+                                          </span>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  )}
+                                  {app.missingSkills?.length > 0 && (
+                                    <div>
+                                      <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Gaps</p>
+                                      <div className="flex flex-wrap gap-1">
+                                        {app.missingSkills.map((s: string) => (
+                                          <span key={s} className="text-[10px] px-1.5 py-0.5 rounded-md bg-red-500/10 text-red-700 dark:text-red-400 font-medium">
+                                            {s}
+                                          </span>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  )}
+                                  {app.atsScoreAtApply && (
+                                    <div className="flex items-center gap-1.5 text-xs">
+                                      <AlertTriangle className="w-3 h-3 text-muted-foreground" />
+                                      <span className="text-muted-foreground">ATS at application: <strong>{app.atsScoreAtApply}%</strong></span>
+                                    </div>
+                                  )}
+                                </div>
+                              </motion.div>
+                            )}
+                          </AnimatePresence>
+                        </div>
+                      )}
 
                       {/* Contact + actions */}
                       <div className="flex flex-wrap items-center gap-2 pt-3 border-t border-border/40">
@@ -246,6 +364,14 @@ export function CompanyApplicants() {
                               <Github className="w-3 h-3" />
                             </a>
                           )}
+                          <button
+                            onClick={() => setResumeModalApp(app)}
+                            className="flex items-center gap-1 hover:text-primary ml-1"
+                            title="View Full Resume"
+                          >
+                            <Eye className="w-3 h-3" />
+                            <span className="text-[10px]">Resume</span>
+                          </button>
                         </div>
 
                         {app.status === "APPLIED" && (
@@ -324,6 +450,127 @@ export function CompanyApplicants() {
           ))}
         </div>
       )}
+
+      {/* Resume Modal */}
+      <AnimatePresence>
+        {resumeModalApp && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
+            onClick={() => setResumeModalApp(null)}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="w-full max-w-2xl max-h-[80vh] overflow-y-auto bg-background rounded-2xl border border-border/40 shadow-2xl"
+            >
+              <div className="sticky top-0 flex items-center justify-between p-4 border-b border-border/40 bg-background/95 backdrop-blur">
+                <div>
+                  <h3 className="font-semibold">{resumeModalApp.student?.name}</h3>
+                  <p className="text-xs text-muted-foreground">{resumeModalApp.internship?.title}</p>
+                </div>
+                <Button size="icon" variant="ghost" onClick={() => setResumeModalApp(null)}>
+                  <X className="w-4 h-4" />
+                </Button>
+              </div>
+              <div className="p-6 space-y-6">
+                {/* Student Details */}
+                <div>
+                  <h4 className="text-sm font-semibold mb-2">Student Details</h4>
+                  <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground">
+                    {resumeModalApp.student?.email && <span>Email: {resumeModalApp.student.email}</span>}
+                    {resumeModalApp.student?.phone && <span>Phone: {resumeModalApp.student.phone}</span>}
+                    {resumeModalApp.student?.college && <span>College: {resumeModalApp.student.college}</span>}
+                    {resumeModalApp.student?.degree && <span>Degree: {resumeModalApp.student.degree}</span>}
+                    {resumeModalApp.student?.branch && <span>Branch: {resumeModalApp.student.branch}</span>}
+                    {resumeModalApp.student?.cgpa && <span>CGPA: {resumeModalApp.student.cgpa}</span>}
+                  </div>
+                </div>
+
+                {/* Skills */}
+                {resumeModalApp.student?.skills?.length > 0 && (
+                  <div>
+                    <h4 className="text-sm font-semibold mb-2">Skills</h4>
+                    <div className="flex flex-wrap gap-1">
+                      {resumeModalApp.student.skills.map((s: string) => (
+                        <Badge key={s} variant="secondary" className="text-[10px]">{s}</Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* ATS Score at Application */}
+                {resumeModalApp.atsScoreAtApply && (
+                  <div>
+                    <h4 className="text-sm font-semibold mb-2">ATS Score at Application</h4>
+                    <div className="flex items-center gap-2">
+                      <div className="text-2xl font-bold">{resumeModalApp.atsScoreAtApply}%</div>
+                      <Badge className={cn(
+                        "text-xs",
+                        resumeModalApp.atsScoreAtApply >= 80 ? "bg-emerald-500/10 text-emerald-700" :
+                        resumeModalApp.atsScoreAtApply >= 60 ? "bg-amber-500/10 text-amber-700" :
+                        "bg-red-500/10 text-red-700"
+                      )}>
+                        {resumeModalApp.atsScoreAtApply >= 80 ? "Good" :
+                         resumeModalApp.atsScoreAtApply >= 60 ? "Moderate" : "Needs Improvement"}
+                      </Badge>
+                    </div>
+                  </div>
+                )}
+
+                {/* Match Analysis */}
+                <div>
+                  <h4 className="text-sm font-semibold mb-2">Match Analysis</h4>
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between text-xs">
+                      <span>Match Score</span>
+                      <span className="font-bold">{resumeModalApp.matchScore}%</span>
+                    </div>
+                    {resumeModalApp.matchingSkills?.length > 0 && (
+                      <div>
+                        <p className="text-[10px] text-muted-foreground uppercase mb-1">Matching Skills</p>
+                        <div className="flex flex-wrap gap-1">
+                          {resumeModalApp.matchingSkills.map((s: string) => (
+                            <span key={s} className="text-[10px] px-1.5 py-0.5 rounded-md bg-emerald-500/10 text-emerald-700 dark:text-emerald-400">
+                              {s}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    {resumeModalApp.missingSkills?.length > 0 && (
+                      <div>
+                        <p className="text-[10px] text-muted-foreground uppercase mb-1">Missing Skills</p>
+                        <div className="flex flex-wrap gap-1">
+                          {resumeModalApp.missingSkills.map((s: string) => (
+                            <span key={s} className="text-[10px] px-1.5 py-0.5 rounded-md bg-red-500/10 text-red-700 dark:text-red-400">
+                              {s}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Cover Letter */}
+                {resumeModalApp.coverLetter && (
+                  <div>
+                    <h4 className="text-sm font-semibold mb-2">Cover Letter</h4>
+                    <p className="text-xs text-muted-foreground leading-relaxed whitespace-pre-wrap">
+                      {resumeModalApp.coverLetter}
+                    </p>
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

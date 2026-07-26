@@ -24,7 +24,8 @@ export type ViewKey =
   | "interview-prep"
   | "profile-wizard"
   | "voice-assistant"
-  | "forgot-password";
+  | "forgot-password"
+  | "admin-ai-dashboard";
 
 export type WorkMode = "remote" | "hybrid" | "onsite";
 
@@ -128,7 +129,7 @@ export interface Notification {
   userId: string;
   title: string;
   message: string;
-  type: "INFO" | "SUCCESS" | "WARNING" | "INTERVIEW" | "APPLICATION";
+  type: "INFO" | "SUCCESS" | "WARNING" | "INTERVIEW" | "APPLICATION" | "RESUME" | "ATS" | "CERTIFICATE";
   read: boolean;
   createdAt: string;
 }
@@ -244,6 +245,38 @@ export interface ResumeData {
       phone: string;
     }>;
   };
+}
+
+export interface ParsedResume {
+  personal: { name: string; email: string; phone: string; address: string; linkedin: string; github: string; };
+  education: Array<{ institution: string; degree: string; branch: string; cgpa: number; startYear: number; endYear: number; }>;
+  skills: Array<{ name: string; category: string; }>;
+  projects: Array<{ title: string; description: string; technologies: string[]; }>;
+  experience: Array<{ company: string; role: string; description: string; startDate: string; endDate: string; }>;
+  certifications: Array<{ name: string; issuer: string; date: string; }>;
+  languages: Array<{ name: string; proficiency: string; }>;
+  achievements: string[];
+  summary: string;
+}
+
+export interface ATSBreakdown {
+  formatting: { score: number; max: number; details: string; };
+  keywords: { score: number; max: number; details: string; };
+  skills: { score: number; max: number; details: string; };
+  experience: { score: number; max: number; details: string; };
+  education: { score: number; max: number; details: string; };
+  grammar: { score: number; max: number; details: string; };
+  projects: { score: number; max: number; details: string; };
+  summary: { score: number; max: number; details: string; };
+}
+
+export interface AIImprovement {
+  type: "missing_summary" | "missing_keywords" | "weak_project" | "grammar" | "missing_skills" | "bullet_point";
+  title: string;
+  current?: string;
+  suggested: string;
+  keywords?: string[];
+  accepted?: boolean;
 }
 
 export interface ATSReport {

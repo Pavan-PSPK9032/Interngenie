@@ -4,6 +4,7 @@ import {
   Users, Building2, Briefcase, FileText, TrendingUp,
   Star, CheckCircle2, Clock, PieChart as PieIcon, BarChart3,
   Activity, MapPin, Award, Loader2, Shield, Download,
+  Brain,
 } from "lucide-react";
 import { useApp } from "@/lib/store";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -137,6 +138,14 @@ export function AdminDashboard() {
             >
               <BarChart3 className="w-4 h-4" />
               Full Reports
+            </Button>
+            <Button
+              onClick={() => useApp.getState().navigate("admin-ai-dashboard")}
+              size="sm"
+              className="bg-white text-emerald-700 hover:bg-white/90 rounded-full gap-1.5"
+            >
+              <Brain className="w-4 h-4" />
+              AI Analytics
             </Button>
             <Button
               onClick={handleExportCSV}

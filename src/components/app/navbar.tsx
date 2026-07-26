@@ -5,6 +5,7 @@ import {
   LayoutDashboard, Briefcase, User as UserIcon, LogOut,
   ChevronDown, Building2, Shield, Heart, Bookmark,
   FileText, ClipboardCheck, MessageSquare, Calendar, BarChart3,
+  Brain,
 } from "lucide-react";
 import { useState } from "react";
 import { useApp } from "@/lib/store";
@@ -48,6 +49,7 @@ export function Navbar() {
     navLinks.push({ label: "Dashboard", view: "admin-dashboard", icon: LayoutDashboard });
     navLinks.push({ label: "Companies", view: "admin-companies", icon: Building2 });
     navLinks.push({ label: "Reports", view: "admin-reports", icon: BarChart3 });
+    navLinks.push({ label: "AI Analytics", view: "admin-ai-dashboard", icon: Brain });
   }
 
   const handleNav = (v: any) => {

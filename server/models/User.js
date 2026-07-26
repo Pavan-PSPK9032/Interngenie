@@ -22,6 +22,7 @@ const userSchema = new mongoose.Schema({
   portfolio: { type: String },
   resumeUrl: { type: String },
   resumeText: { type: String },
+  resumeData: { type: mongoose.Schema.Types.Mixed, default: null },
   extractedSkills: { type: [String], default: [] },
   profileCompleted: { type: Number, default: 0 },
   companyId: { type: String },

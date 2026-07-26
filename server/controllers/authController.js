@@ -151,30 +151,30 @@ exports.verifyEmail = async (req, res, next) => {
 
 exports.googleLogin = async (req, res, next) => {
   try {
-    const { email, name, googleId, avatarUrl } = req.body;
-    if (!email || !googleId) {
-      return res.status(400).json({ error: "Email and googleId are required" });
+    const { email, name, avatarUrl, googleId } = req.body;
+    if (!email) {
+      return res.status(400).json({ error: "Email is required" });
     }
 
     let user = await User.findOne({ email });
 
     if (user) {
-      if (user.googleId && user.googleId !== googleId) {
-        return res.status(409).json({ error: "An account with this email already exists. Please login with your password." });
-      }
       if (!user.googleId) {
         user.googleId = googleId;
-        if (avatarUrl && !user.avatarUrl) {
-          user.avatarUrl = avatarUrl;
-        }
-        await user.save();
       }
+      if (avatarUrl) {
+        user.avatarUrl = avatarUrl;
+      }
+      if (name && !user.name) {
+        user.name = name;
+      }
+      await user.save();
     } else {
-      const randomPassword = crypto.randomBytes(32).toString("hex");
+      const randomPassword = crypto.randomBytes(30).toString("hex");
       user = await User.create({
         email,
-        name,
-        googleId,
+        name: name || email.split("@")[0],
+        googleId: googleId || undefined,
         avatarUrl: avatarUrl || undefined,
         passwordHash: hashPassword(randomPassword),
         role: "STUDENT",
