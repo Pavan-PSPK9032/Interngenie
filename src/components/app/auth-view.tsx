@@ -64,6 +64,7 @@ export function AuthView() {
   const [googleLoading, setGoogleLoading] = useState(false);
   const [googleReady, setGoogleReady] = useState(false);
   const [googleScriptLoaded, setGoogleScriptLoaded] = useState(false);
+  const googleInitialized = useRef(false);
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -146,7 +147,7 @@ export function AuthView() {
   }, [GOOGLE_CLIENT_ID]);
 
   useEffect(() => {
-    if (!googleScriptLoaded || !GOOGLE_CLIENT_ID || !window.google) return;
+    if (!googleScriptLoaded || !GOOGLE_CLIENT_ID || !window.google || googleInitialized.current) return;
 
     try {
       window.google.accounts.id.initialize({
@@ -155,11 +156,12 @@ export function AuthView() {
         auto_select: false,
         cancel_on_tap_outside: true,
       });
+      googleInitialized.current = true;
       setGoogleReady(true);
     } catch {
       setGoogleReady(false);
     }
-  }, [googleScriptLoaded, GOOGLE_CLIENT_ID, handleCredentialResponse]);
+  }, [googleScriptLoaded, GOOGLE_CLIENT_ID]);
 
   const triggerGoogleSignIn = () => {
     if (!googleReady || !window.google) return;
