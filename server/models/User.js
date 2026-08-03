@@ -5,8 +5,13 @@ const userSchema = new mongoose.Schema({
   passwordHash: { type: String },
   googleId: { type: String },
   name: { type: String, required: true, trim: true },
+  username: { type: String, unique: true, sparse: true, lowercase: true, trim: true },
   role: { type: String, enum: ["STUDENT", "COMPANY", "ADMIN"], default: "STUDENT" },
   avatarUrl: { type: String },
+  bannerUrl: { type: String },
+  bannerPosition: { type: String, default: "50% 50%" },
+  headline: { type: String, default: "" },
+  location: { type: String, default: "" },
   phone: { type: String },
   address: { type: String },
   college: { type: String },
@@ -39,7 +44,8 @@ const userSchema = new mongoose.Schema({
   courses: { type: [mongoose.Schema.Types.Mixed], default: [] },
   achievements: { type: [String], default: [] },
   privacySettings: {
-    profilePublic: { type: Boolean, default: false },
+    visibility: { type: String, enum: ["public", "private", "recruiters"], default: "public" },
+    profilePublic: { type: Boolean, default: true },
     showEmail: { type: Boolean, default: false },
     showPhone: { type: Boolean, default: false },
     showLinkedIn: { type: Boolean, default: true },
@@ -48,10 +54,15 @@ const userSchema = new mongoose.Schema({
     showCertificates: { type: Boolean, default: true },
     showProjects: { type: Boolean, default: true },
     showExperience: { type: Boolean, default: true },
+    showAtsScore: { type: Boolean, default: true },
+    showResume: { type: Boolean, default: true },
   },
+  profileViews: { type: Number, default: 0 },
+  searchAppearances: { type: Number, default: 0 },
 }, { timestamps: true });
 
 userSchema.index({ role: 1 });
 userSchema.index({ "privacySettings.profilePublic": 1, role: 1 });
+userSchema.index({ username: 1 });
 
 module.exports = mongoose.model("User", userSchema);

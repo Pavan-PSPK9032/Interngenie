@@ -9,6 +9,7 @@ const { checkATS } = require("../utils/atsChecker");
 const { computeProfileCompleteness } = require("../utils/profileCompleteness");
 const { generateToken, hashPassword, verifyPassword, sanitizeUser, generateResetToken, generateVerificationToken } = require("../utils/helpers");
 const { sendPasswordResetEmail, sendVerificationEmail } = require("../utils/email");
+const { generateUniqueUsername } = require("../utils/username");
 
 function inferCertCategory(name) {
   const n = (name || "").toLowerCase();
@@ -56,10 +57,15 @@ exports.registerWithResume = async (req, res, next) => {
     const existing = await User.findOne({ email });
     if (existing) return res.status(409).json({ error: "Email already registered" });
 
+    const username = await generateUniqueUsername(name);
+    const headline = `Computer Science Student at ${parsed.education?.[0]?.institution || ""}`.trim();
+
     const user = await User.create({
       email,
       passwordHash,
       name,
+      username,
+      headline,
       role: "STUDENT",
       isVerified: true,
       isApproved: true,
@@ -204,10 +210,12 @@ exports.register = async (req, res, next) => {
     const existing = await User.findOne({ email });
     if (existing) return res.status(409).json({ error: "Email already registered" });
 
+    const username = await generateUniqueUsername(name);
     const user = await User.create({
       email,
       passwordHash: hashPassword(password),
       name,
+      username,
       role,
       companyId: role === "COMPANY" ? companyId : undefined,
       isVerified: role === "STUDENT",
@@ -340,9 +348,12 @@ exports.googleLogin = async (req, res, next) => {
       await user.save();
     } else {
       const randomPassword = crypto.randomBytes(30).toString("hex");
+      const displayName = name || email.split("@")[0];
+      const username = await generateUniqueUsername(displayName);
       user = await User.create({
         email,
-        name: name || email.split("@")[0],
+        name: displayName,
+        username,
         googleId: googleId || undefined,
         avatarUrl: avatarUrl || undefined,
         passwordHash: hashPassword(randomPassword),

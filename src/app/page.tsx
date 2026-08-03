@@ -34,9 +34,27 @@ import { VoiceAssistant } from "@/components/app/voice-assistant";
 import { ForgotPassword } from "@/components/app/forgot-password";
 import { RegisterResume } from "@/components/app/register-resume";
 import { PublicProfileView } from "@/components/app/public-profile";
+import { SearchResults } from "@/components/app/search-results";
 
 export default function Home() {
   const { view, user, navigate } = useApp();
+
+  // Deep-link support: /profile/:username opens a public profile
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const m = window.location.pathname.match(/^\/profile\/([^/]+)/);
+    if (m && m[1]) {
+      const username = m[1];
+      window.history.replaceState({}, "", "/");
+      fetch(`/api/public/profile/username/${encodeURIComponent(username)}`)
+        .then((res) => (res.ok ? res.json() : null))
+        .then((data) => {
+          if (data?.userId) navigate("public-profile", { userId: data.userId });
+          else navigate("home");
+        })
+        .catch(() => navigate("home"));
+    }
+  }, [navigate]);
 
   // Route guard — redirect to auth if accessing protected views without login
   useEffect(() => {
@@ -113,6 +131,8 @@ export default function Home() {
         return user ? <StudentDashboard /> : <RegisterResume />;
       case "public-profile":
         return <PublicProfileView />;
+      case "search":
+        return <SearchResults />;
       default:
         return <LandingPage />;
     }

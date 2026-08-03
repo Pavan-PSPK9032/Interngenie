@@ -27,7 +27,10 @@ export type ViewKey =
   | "forgot-password"
   | "admin-ai-dashboard"
   | "public-profile"
-  | "register-resume";
+  | "register-resume"
+  | "search";
+
+export type ProfileVisibility = "public" | "private" | "recruiters";
 
 export type WorkMode = "remote" | "hybrid" | "onsite";
 
@@ -102,8 +105,13 @@ export interface User {
   id: string;
   email: string;
   name: string;
+  username?: string;
   role: Role;
   avatarUrl?: string;
+  bannerUrl?: string;
+  bannerPosition?: string;
+  headline?: string;
+  location?: string;
   phone?: string;
   address?: string;
   college?: string;
@@ -120,6 +128,7 @@ export interface User {
   portfolio?: string;
   resumeUrl?: string;
   resumeText?: string;
+  resumeData?: unknown;
   extractedSkills: string[];
   profileCompleted: number;
   companyId?: string;
@@ -134,7 +143,10 @@ export interface User {
   certifications?: Array<Record<string, unknown>>;
   courses?: Array<Record<string, unknown>>;
   achievements?: string[];
+  profileViews?: number;
+  searchAppearances?: number;
   privacySettings?: {
+    visibility: ProfileVisibility;
     profilePublic: boolean;
     showEmail: boolean;
     showPhone: boolean;
@@ -144,7 +156,27 @@ export interface User {
     showCertificates: boolean;
     showProjects: boolean;
     showExperience: boolean;
+    showAtsScore: boolean;
+    showResume: boolean;
   };
+}
+
+export interface ProfileBadge {
+  name: string;
+  icon: string;
+}
+
+export interface ProfileStats {
+  profileViews: number;
+  searchAppearances: number;
+  followersCount: number;
+  followingCount: number;
+  applications: number;
+  completedInternships: number;
+  certificates: number;
+  projects: number;
+  atsScore: number | null;
+  profileCompleted: number;
 }
 
 export interface Notification {
@@ -289,13 +321,19 @@ export interface SearchResult {
   students: Array<{
     id: string;
     name: string;
+    username?: string;
     avatarUrl: string;
     email: string;
     college: string;
     branch: string;
     degree: string;
+    headline?: string;
     skills: string[];
     graduationYear: number;
+    profileCompleted: number;
+    atsScore: number | null;
+    atsGrade?: string;
+    followersCount: number;
     status: string;
   }>;
   companies: Array<{
@@ -317,16 +355,42 @@ export interface SearchResult {
     stipend: number;
     workMode: string;
   }>;
+  skills: Array<{ name: string; count: number }>;
+  colleges: Array<{ name: string; count: number }>;
+  certificates: Array<{
+    id: string;
+    name: string;
+    organization: string;
+    category: string;
+    issueDate?: string;
+    userId?: string;
+  }>;
 }
+
+export type SearchFilter =
+  | "all"
+  | "people"
+  | "companies"
+  | "internships"
+  | "skills"
+  | "colleges"
+  | "certificates";
+
+export type SearchSort = "relevance" | "newest";
 
 export interface PublicProfile {
   id: string;
   name: string;
+  username?: string;
   avatarUrl: string;
+  bannerUrl?: string;
+  bannerPosition?: string;
+  headline?: string;
   college: string;
   branch: string;
   degree: string;
   graduationYear: number;
+  location?: string;
   cgpa: number;
   skills: string[];
   summary: string;
@@ -334,6 +398,14 @@ export interface PublicProfile {
   achievements: string[];
   languages: string[];
   profileCompleted: number;
+  profileViews: number;
+  searchAppearances: number;
+  followersCount: number;
+  followingCount: number;
+  applicationsCount: number;
+  certificatesCount: number;
+  isFollowing?: boolean;
+  badges?: Array<{ name: string; icon: string }>;
   email?: string;
   phone?: string;
   linkedin?: string;

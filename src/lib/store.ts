@@ -41,6 +41,10 @@ interface AppState {
   pushToast: (t: { title: string; message?: string; type?: "info" | "success" | "error" }) => void;
   dismissToast: (id: string) => void;
 
+  // Search
+  searchQuery: string;
+  setSearchQuery: (q: string) => void;
+
   // Resume Builder
   resumeData: ResumeData | null;
   setResumeData: (data: ResumeData) => void;
@@ -105,6 +109,9 @@ export const useApp = create<AppState>()(
 
       chatbotOpen: false,
       setChatbotOpen: (chatbotOpen) => set({ chatbotOpen }),
+
+      searchQuery: "",
+      setSearchQuery: (searchQuery) => set({ searchQuery }),
 
       toasts: [],
       pushToast: (t) => {

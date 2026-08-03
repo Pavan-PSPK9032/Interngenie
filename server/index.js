@@ -33,7 +33,7 @@ app.use("/api/admin", auth, requireRole("ADMIN"), require("./routes/admin"));
 app.use("/api/applications", auth, require("./routes/applications"));
 app.use("/api/notifications", auth, require("./routes/notifications"));
 app.use("/api/profile", auth, require("./routes/profile"));
-app.use("/api/public/profile", require("./routes/publicProfile"));
+app.use("/api/public/profile", optionalAuth, require("./routes/publicProfile"));
 app.use("/api/search", auth, require("./routes/search"));
 app.use("/api/chat", optionalAuth, require("./routes/chat"));
 app.use("/api/recommendations", auth, require("./routes/recommendations"));
