@@ -1,45 +1,70 @@
 const crypto = require("crypto");
 const User = require("../models/User");
 const Token = require("../models/Token");
+const Certificate = require("../models/Certificate");
+const ATSReport = require("../models/ATSReport");
+const Notification = require("../models/Notification");
 const { parseResume } = require("../utils/resumeParser");
+const { checkATS } = require("../utils/atsChecker");
+const { computeProfileCompleteness } = require("../utils/profileCompleteness");
 const { generateToken, hashPassword, verifyPassword, sanitizeUser, generateResetToken, generateVerificationToken } = require("../utils/helpers");
 const { sendPasswordResetEmail, sendVerificationEmail } = require("../utils/email");
+
+function inferCertCategory(name) {
+  const n = (name || "").toLowerCase();
+  if (/ai|machine learning|deep learning|nlp|computer vision|data science|tensorflow|pytorch|gen ?ai/.test(n)) return "AI";
+  if (/cloud|aws|azure|gcp|devops|docker|kubernetes/.test(n)) return "Cloud";
+  if (/cyber|security|ethical|hacking|penetration/.test(n)) return "Cybersecurity";
+  if (/data|sql|analytics|statistics|excel|power ?bi|tableau/.test(n)) return "Data Science";
+  if (/web|react|node|javascript|html|css|frontend|full ?stack/.test(n)) return "Web Development";
+  if (/java|python|c\+\+|programming|software|development|algorithm|backend/.test(n)) return "Programming";
+  return "Other";
+}
+
+function parseCertDate(raw) {
+  if (!raw) return undefined;
+  const d = new Date(raw);
+  return isNaN(d.getTime()) ? undefined : d;
+}
 
 exports.registerWithResume = async (req, res, next) => {
   try {
     const { resumeText, resumeData, additionalFields, password } = req.body;
-    
+
     if (!resumeText || !resumeData) {
       return res.status(400).json({ error: "Resume data is required" });
-    }
-    if (!password || password.length < 6) {
-      return res.status(400).json({ error: "Password must be at least 6 characters" });
     }
 
     const parsed = typeof resumeData === "string" ? parseResume(resumeText) : resumeData;
     const personal = parsed.personal || {};
-    const email = personal.email || additionalFields?.email;
+    const email = (personal.email || additionalFields?.email || "").toLowerCase();
     const name = personal.name || additionalFields?.name;
+    const phone = personal.phone || additionalFields?.phone || "";
 
     if (!email || !name) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         error: "Email and name are required",
         missing: { email: !email, name: !name }
       });
     }
+
+    if (password && password.length < 6) {
+      return res.status(400).json({ error: "Password must be at least 6 characters" });
+    }
+    const passwordHash = hashPassword(password || crypto.randomBytes(30).toString("hex"));
 
     const existing = await User.findOne({ email });
     if (existing) return res.status(409).json({ error: "Email already registered" });
 
     const user = await User.create({
       email,
-      passwordHash: hashPassword(password),
+      passwordHash,
       name,
       role: "STUDENT",
       isVerified: true,
       isApproved: true,
       emailVerified: true,
-      phone: personal.phone || "",
+      phone,
       address: personal.address || "",
       linkedin: personal.linkedin || "",
       github: personal.github || "",
@@ -60,15 +85,91 @@ exports.registerWithResume = async (req, res, next) => {
       projects: parsed.projects || [],
       experience: parsed.experience || [],
       certifications: parsed.certifications || [],
-      languages: parsed.languages || [],
+      languages: (parsed.languages || []).map((l) => l.name || l),
       achievements: parsed.achievements || [],
       courses: parsed.courses || [],
       careerObjective: parsed.summary || "",
-      profileCompleted: 80,
+      "privacySettings.profilePublic": true,
     });
 
+    const userId = user._id.toString();
+    const atsReport = checkATS(resumeText, null);
+
+    await ATSReport.create({
+      userId,
+      resumeText,
+      score: atsReport.score,
+      grade: atsReport.grade,
+      breakdown: atsReport.breakdown,
+      missingKeywords: atsReport.missingKeywords || [],
+      suggestedSkills: atsReport.suggestedSkills || [],
+      improvements: atsReport.improvements || [],
+      bulletPointSuggestions: atsReport.bulletPointSuggestions || [],
+      summarySuggestion: atsReport.summarySuggestion || "",
+    });
+
+    const certificateRows = [];
+    for (const c of parsed.certifications || []) {
+      if (!c.name || !c.issuer) continue;
+      certificateRows.push({
+        userId,
+        name: c.name,
+        organization: c.issuer,
+        category: inferCertCategory(c.name),
+        issueDate: parseCertDate(c.date),
+        isPublic: true,
+      });
+    }
+    for (const c of parsed.courses || []) {
+      if (!c.name || !c.platform) continue;
+      certificateRows.push({
+        userId,
+        name: c.name,
+        organization: c.platform,
+        category: inferCertCategory(c.name),
+        issueDate: parseCertDate(c.date),
+        isPublic: true,
+      });
+    }
+    if (certificateRows.length > 0) {
+      await Certificate.insertMany(certificateRows);
+    }
+
+    const notifications = [
+      {
+        userId,
+        title: "Welcome to InternGenie!",
+        message: `Hi ${name}, your account and profile are ready. Start exploring internships now.`,
+        type: "SUCCESS",
+      },
+      {
+        userId,
+        title: "ATS Score Ready",
+        message: `Your resume scored ${atsReport.score}/100 (grade ${atsReport.grade}). Open the Resume Analyzer to see improvement tips.`,
+        type: "ATS",
+      },
+      {
+        userId,
+        title: "Profile is Live",
+        message: "Your public profile is now discoverable by companies. Keep it updated to get noticed.",
+        type: "INFO",
+      },
+    ];
+    await Notification.insertMany(notifications);
+
+    const certCount = await Certificate.countDocuments({ userId });
+    const completeness = computeProfileCompleteness(user.toObject(), certCount);
+    user.profileCompleted = completeness.score;
+    await user.save();
+
     const token = generateToken(user);
-    return res.json({ user: sanitizeUser(user), token });
+    return res.json({
+      user: sanitizeUser(user),
+      token,
+      atsScore: atsReport.score,
+      atsGrade: atsReport.grade,
+      certificates: certificateRows.length,
+    });
   } catch (err) { next(err); }
 };
 

@@ -27,6 +27,15 @@ exports.uploadAndParse = async (req, res, next) => {
         } catch {
           return res.status(400).json({ error: "Failed to parse DOCX file" });
         }
+      } else if (ext === "doc") {
+        try {
+          const WordExtractor = require("word-extractor");
+          const extractor = new WordExtractor();
+          const document = await extractor.extract(buffer);
+          resumeText = document.getBody() || "";
+        } catch {
+          return res.status(400).json({ error: "Failed to parse DOC file" });
+        }
       } else if (ext === "txt") {
         resumeText = buffer.toString("utf-8");
       } else {
