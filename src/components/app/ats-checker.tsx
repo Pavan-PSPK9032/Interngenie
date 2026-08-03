@@ -307,10 +307,10 @@ function UploadTab({ resumeData, navigate, token, pushToast }: {
             onDrop={handleDrop}
             onClick={() => fileRef.current?.click()}
             className={cn(
-              "relative flex flex-col items-center justify-center gap-4 p-10 rounded-2xl border-2 border-dashed cursor-pointer transition-all duration-300",
+              "relative flex flex-col items-center justify-center gap-4 p-10 rounded-3xl border-2 border-dashed glass-card border-white/10 cursor-pointer transition-all duration-300 overflow-hidden",
               dragOver
-                ? "border-primary bg-primary/5 scale-[1.01]"
-                : "border-muted-foreground/20 hover:border-primary/40 hover:bg-muted/30"
+                ? "border-primary bg-primary/10 scale-[1.01]"
+                : "hover:border-primary/40 hover:bg-white/[0.04]"
             )}
           >
             <div className={cn(
@@ -453,7 +453,7 @@ function UploadTab({ resumeData, navigate, token, pushToast }: {
             >
               <div className="space-y-2">
                 {parsed.education.map((edu, i) => (
-                  <div key={i} className="p-3 rounded-xl bg-muted/30 border border-border/30">
+                  <div key={i} className="p-3 rounded-xl glass-card border-white/[0.08]">
                     <p className="text-sm font-medium">{edu.degree}{edu.branch ? ` in ${edu.branch}` : ""}</p>
                     {edu.institution && <p className="text-xs text-muted-foreground mt-0.5">{edu.institution}</p>}
                     <div className="flex items-center gap-3 mt-1 text-[11px] text-muted-foreground">
@@ -475,7 +475,7 @@ function UploadTab({ resumeData, navigate, token, pushToast }: {
             >
               <div className="space-y-2">
                 {parsed.experience.map((exp, i) => (
-                  <div key={i} className="p-3 rounded-xl bg-muted/30 border border-border/30">
+                  <div key={i} className="p-3 rounded-xl glass-card border-white/[0.08]">
                     <p className="text-sm font-medium">{exp.role}</p>
                     {exp.company && <p className="text-xs text-primary">{exp.company}</p>}
                     {(exp.startDate || exp.endDate) && (
@@ -497,7 +497,7 @@ function UploadTab({ resumeData, navigate, token, pushToast }: {
             >
               <div className="space-y-2">
                 {parsed.projects.map((proj, i) => (
-                  <div key={i} className="p-3 rounded-xl bg-muted/30 border border-border/30">
+                  <div key={i} className="p-3 rounded-xl glass-card border-white/[0.08]">
                     <p className="text-sm font-medium">{proj.title}</p>
                     {proj.description && <p className="text-xs mt-1 leading-relaxed">{proj.description.slice(0, 250)}</p>}
                     {proj.technologies.length > 0 && (

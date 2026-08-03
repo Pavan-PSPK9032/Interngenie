@@ -1,21 +1,26 @@
 "use client";
-import { Sparkles, Github, Twitter, Linkedin, Mail, Heart } from "lucide-react";
+import { Sparkles, Github, Twitter, Linkedin, Mail, Heart, Bot } from "lucide-react";
 import { useApp } from "@/lib/store";
 
 export function Footer() {
-  const { navigate } = useApp();
+  const { navigate, setChatbotOpen } = useApp();
   return (
-    <footer className="mt-auto border-t border-border/40 bg-card/30">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12 pb-24 md:pb-12">
+    <footer className="relative mt-12 overflow-hidden">
+      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-indigo-500/40 to-transparent" />
+      <div className="absolute -top-32 left-1/2 -translate-x-1/2 w-[600px] h-[300px] gradient-hero blur-3xl opacity-30 pointer-events-none" />
+      <div className="relative mx-auto max-w-[1500px] px-4 sm:px-6 lg:px-8 py-12 pb-28 md:pb-12">
         <div className="grid grid-cols-2 md:grid-cols-5 gap-8">
           {/* Brand */}
           <div className="col-span-2 md:col-span-2">
             <div className="flex items-center gap-2.5 mb-4">
-              <div className="gradient-emerald rounded-xl p-2">
-                <Sparkles className="w-5 h-5 text-white" />
+              <div className="relative">
+                <div className="absolute inset-0 gradient-primary rounded-xl blur-md opacity-60" />
+                <div className="relative gradient-primary rounded-xl p-2 shadow-glow">
+                  <Sparkles className="w-5 h-5 text-white" />
+                </div>
               </div>
               <div>
-                <p className="font-bold text-lg gradient-text">InternGenie</p>
+                <p className="font-bold text-lg gradient-text tracking-tight">InternGenie</p>
                 <p className="text-xs text-muted-foreground">PM Internship Scheme</p>
               </div>
             </div>
@@ -28,10 +33,10 @@ export function Footer() {
               {[Github, Twitter, Linkedin, Mail].map((Icon, i) => (
                 <button
                   key={i}
-                  className="w-9 h-9 rounded-lg bg-muted/50 hover:bg-primary/10 hover:text-primary flex items-center justify-center transition-colors"
+                  className="w-9 h-9 rounded-xl bg-white/[0.04] border border-white/[0.06] hover:bg-white/[0.08] hover:border-white/10 hover:text-primary hover:-translate-y-0.5 transition-all shadow-glow"
                   aria-label="social"
                 >
-                  <Icon className="w-4 h-4" />
+                  <Icon className="w-4 h-4 mx-auto" />
                 </button>
               ))}
             </div>
@@ -98,12 +103,12 @@ export function Footer() {
               <li><button onClick={() => navigate("home")} className="hover:text-primary transition-colors">Help Center</button></li>
               <li><button onClick={() => navigate("home")} className="hover:text-primary transition-colors">Privacy Policy</button></li>
               <li><button onClick={() => navigate("home")} className="hover:text-primary transition-colors">Terms of Service</button></li>
-              <li><button onClick={() => navigate("home")} className="hover:text-primary transition-colors">Contact</button></li>
+              <li><button onClick={() => setChatbotOpen(true)} className="hover:text-primary transition-colors flex items-center gap-1.5"><Bot className="w-3.5 h-3.5 text-cyan-400" /> AI Assistant</button></li>
             </ul>
           </div>
         </div>
 
-        <div className="border-t border-border/40 mt-10 pt-6 flex flex-col sm:flex-row items-center justify-between gap-3">
+        <div className="border-t border-white/[0.06] mt-10 pt-6 flex flex-col sm:flex-row items-center justify-between gap-3">
           <p className="text-xs text-muted-foreground">
             © 2026 InternGenie. Government of India — PM Internship Scheme.
           </p>

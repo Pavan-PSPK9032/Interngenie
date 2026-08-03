@@ -248,10 +248,14 @@ export function AuthView() {
   return (
     <div className="min-h-[calc(100vh-4rem)] flex items-stretch">
       {/* LEFT: Hero Section */}
-      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-emerald-600 via-teal-600 to-cyan-700" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_40%,rgba(255,255,255,0.12),transparent_60%)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_80%,rgba(0,0,0,0.15),transparent_50%)]" />
+      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-[#070814]">
+        <div className="absolute inset-0 bg-gradient-to-br from-indigo-950 via-[#0b1030] to-cyan-950" />
+        <div className="absolute inset-0 gradient-hero" />
+        <div className="absolute -top-24 -left-24 w-[480px] h-[480px] orb-indigo animate-float-slow" />
+        <div className="absolute top-1/3 -right-32 w-[420px] h-[420px] orb-cyan animate-blob" />
+        <div className="absolute -bottom-32 left-1/4 w-[380px] h-[380px] orb-violet animate-float-slow" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_30%,rgba(255,255,255,0.06),transparent_50%)]" />
+        <div className="absolute inset-0 opacity-[0.04] [background-image:radial-gradient(rgba(255,255,255,0.6)_1px,transparent_1px)] [background-size:24px_24px]" />
 
         <div className="relative z-10 flex flex-col justify-center px-12 xl:px-16 w-full">
           <motion.div
@@ -260,19 +264,22 @@ export function AuthView() {
             transition={{ duration: 0.7 }}
           >
             <div className="flex items-center gap-3 mb-8">
-              <div className="w-12 h-12 rounded-2xl bg-white/15 backdrop-blur-sm flex items-center justify-center border border-white/20 shadow-lg">
-                <Sparkles className="w-6 h-6 text-white" />
+              <div className="relative">
+                <div className="absolute inset-0 gradient-primary rounded-2xl blur-md opacity-70" />
+                <div className="relative w-12 h-12 rounded-2xl gradient-primary flex items-center justify-center border border-white/20 shadow-glow">
+                  <Sparkles className="w-6 h-6 text-white" />
+                </div>
               </div>
               <span className="text-2xl font-bold text-white tracking-tight">InternGenie</span>
             </div>
 
-            <h1 className="text-4xl xl:text-5xl font-bold text-white leading-tight mb-4">
+            <h1 className="text-4xl xl:text-5xl font-bold text-white leading-tight mb-4 tracking-tight">
               AI-Powered
               <br />
-              Internship Platform
+              <span className="gradient-text">Internship Platform</span>
             </h1>
 
-            <p className="text-lg text-emerald-100/80 mb-10 max-w-md leading-relaxed">
+            <p className="text-lg text-slate-300/85 mb-10 max-w-md leading-relaxed">
               Discover your perfect internship with intelligent recommendations tailored to your skills, interests, and career goals.
             </p>
 
@@ -285,13 +292,32 @@ export function AuthView() {
                   transition={{ duration: 0.5, delay: 0.3 + i * 0.15 }}
                   className="flex items-center gap-3"
                 >
-                  <div className="w-10 h-10 rounded-xl bg-white/10 backdrop-blur-sm flex items-center justify-center border border-white/15">
-                    <f.icon className="w-5 h-5 text-emerald-200" />
+                  <div className="w-10 h-10 rounded-xl bg-white/[0.07] backdrop-blur-sm flex items-center justify-center border border-white/10 shadow-glow">
+                    <f.icon className="w-5 h-5 text-cyan-300" />
                   </div>
                   <span className="text-sm font-medium text-white/90">{f.text}</span>
                 </motion.div>
               ))}
             </div>
+          </motion.div>
+
+          {/* Floating stat cards */}
+          <motion.div
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: 0.6 }}
+            className="mt-12 grid grid-cols-3 gap-4"
+          >
+            {[
+              { value: "1.2M+", label: "Students" },
+              { value: "12.5K+", label: "Companies" },
+              { value: "94%", label: "Match Rate" },
+            ].map((s) => (
+              <div key={s.label} className="glass rounded-2xl border-white/10 p-4 shadow-premium animate-float-slow">
+                <p className="text-2xl font-bold gradient-text">{s.value}</p>
+                <p className="text-xs text-slate-300/70 mt-0.5">{s.label}</p>
+              </div>
+            ))}
           </motion.div>
         </div>
       </div>
@@ -557,7 +583,7 @@ export function AuthView() {
                 key={i}
                 className="flex items-center gap-1.5 text-xs text-muted-foreground"
               >
-                <f.icon className="w-3.5 h-3.5 text-emerald-500" />
+                <f.icon className="w-3.5 h-3.5 text-cyan-400" />
                 {f.label}
               </div>
             ))}

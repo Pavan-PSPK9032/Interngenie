@@ -23,7 +23,7 @@ import { PrivacySettings } from "@/components/app/privacy-settings";
 import { ProfileCompleteness } from "@/components/app/profile-completeness";
 
 export function StudentProfile() {
-  const { user, token, updateUser, pushToast } = useApp();
+  const { user, token, updateUser, pushToast, navigate } = useApp();
   const queryClient = useQueryClient();
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -164,21 +164,73 @@ export function StudentProfile() {
 
   return (
     <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-6 md:py-10 space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl md:text-3xl font-bold tracking-tight">My Profile</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Complete your profile to boost AI match accuracy
-          </p>
+      {/* LinkedIn-style cover header */}
+      <div className="relative overflow-hidden rounded-3xl glass-card border-white/[0.08] shadow-premium">
+        <div className="relative h-36 md:h-44 bg-gradient-to-br from-indigo-600/40 via-violet-600/30 to-cyan-500/40">
+          <div className="absolute -top-16 -right-16 w-64 h-64 orb-indigo animate-float-slow" />
+          <div className="absolute -bottom-20 left-1/4 w-72 h-72 orb-cyan animate-blob" />
+          <div className="absolute inset-0 opacity-[0.05] [background-image:radial-gradient(rgba(255,255,255,0.7)_1px,transparent_1px)] [background-size:22px_22px]" />
+          <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/40 to-transparent" />
+          <button
+            onClick={() => navigate("resume-builder")}
+            className="absolute top-3 right-3 flex items-center gap-1.5 text-xs font-medium text-white/90 bg-white/10 hover:bg-white/20 backdrop-blur rounded-full px-3 py-1.5 border border-white/20 transition-colors"
+          >
+            <Sparkles className="w-3.5 h-3.5" /> Improve with AI
+          </button>
         </div>
-        <div className="text-right">
-          <div className="text-2xl font-bold gradient-text">{completenessData?.score ?? user.profileCompleted}%</div>
-          <p className="text-xs text-muted-foreground">Complete</p>
+
+        <div className="px-5 sm:px-7 pb-6">
+          <div className="flex flex-col sm:flex-row items-start sm:items-end gap-4 -mt-12 sm:-mt-14">
+            <div className="relative shrink-0">
+              <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl gradient-primary flex items-center justify-center border-4 border-background shadow-glow">
+                <span className="text-3xl font-bold text-white">
+                  {(form.name || user.name || "S").charAt(0).toUpperCase()}
+                </span>
+              </div>
+              <span className="absolute bottom-2 right-2 w-4 h-4 rounded-full bg-emerald-400 border-[3px] border-background" />
+            </div>
+            <div className="flex-1 min-w-0 pt-2 sm:pt-0">
+              <h1 className="text-xl md:text-2xl font-bold tracking-tight truncate">
+                {form.name || user.name}
+              </h1>
+              <p className="text-sm text-muted-foreground truncate">{user.email}</p>
+              <div className="flex flex-wrap items-center gap-2 mt-2">
+                <Badge className="bg-indigo-500/15 text-indigo-300 border border-indigo-500/30 text-[10px]">
+                  {user.role}
+                </Badge>
+                {(form.college || form.degree) && (
+                  <Badge variant="secondary" className="text-[10px]">
+                    {[form.degree, form.branch].filter(Boolean).join(" · ") || form.college}
+                  </Badge>
+                )}
+                {form.skills.length > 0 && (
+                  <Badge variant="secondary" className="text-[10px]">{form.skills.length} skills</Badge>
+                )}
+              </div>
+            </div>
+            <div className="flex items-center gap-3 shrink-0 bg-white/[0.04] border border-white/[0.08] rounded-2xl px-4 py-3">
+              <div className="text-center">
+                <div className="text-2xl font-bold gradient-text">
+                  {completenessData?.score ?? user.profileCompleted}%
+                </div>
+                <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Complete</p>
+              </div>
+            </div>
+          </div>
+
+          <Progress value={user.profileCompleted} className="h-2 mt-5" />
+          <div className="flex items-center justify-between mt-1.5">
+            <p className="text-[11px] text-muted-foreground">
+              {(completenessData?.score ?? user.profileCompleted) >= 80
+                ? "Great job! Your profile is recruiter-ready."
+                : "Keep completing sections to boost your AI match score."}
+            </p>
+            <p className="text-[11px] text-muted-foreground hidden sm:block">
+              A complete profile gets up to 4x more applications
+            </p>
+          </div>
         </div>
       </div>
-
-      <Progress value={user.profileCompleted} className="h-2" />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-5">

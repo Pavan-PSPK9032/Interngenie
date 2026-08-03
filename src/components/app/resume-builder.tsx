@@ -177,65 +177,131 @@ export function ResumeBuilder() {
         </div>
       </div>
 
-      {/* Step Content */}
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={step}
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          exit={{ opacity: 0, x: -20 }}
-          transition={{ duration: 0.25 }}
-        >
-          {step === 0 && <PersonalStep data={data} update={updatePersonal} />}
-          {step === 1 && <EducationStep data={data} update={update} />}
-          {step === 2 && <SkillsStep data={data} update={update} activeCategory={activeSkillCategory} setActiveCategory={setActiveSkillCategory} />}
-          {step === 3 && <ProjectsStep data={data} update={update} />}
-          {step === 4 && <ExperienceStep data={data} update={update} />}
-          {step === 5 && <CertsStep data={data} update={update} />}
-          {step === 6 && <LanguagesStep data={data} update={update} />}
-          {step === 7 && <AdditionalStep data={data} update={updateAdditional} />}
-          {step === 8 && (
-            <PreviewStep
-              data={data}
-              template={resumeTemplate}
-              setTemplate={setResumeTemplate}
-              color={resumeColor}
-              setColor={setResumeColor}
-              onPrint={handlePrint}
-              onDownload={handleDownload}
-              onSave={handleSaveToProfile}
-              saving={saving}
-            />
-          )}
-        </motion.div>
-      </AnimatePresence>
+      {/* Split: form + live preview */}
+      <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_360px] gap-6 items-start">
+        <div className="min-w-0">
+          {/* Step Content */}
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={step}
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.25 }}
+            >
+              {step === 0 && <PersonalStep data={data} update={updatePersonal} />}
+              {step === 1 && <EducationStep data={data} update={update} />}
+              {step === 2 && <SkillsStep data={data} update={update} activeCategory={activeSkillCategory} setActiveCategory={setActiveSkillCategory} />}
+              {step === 3 && <ProjectsStep data={data} update={update} />}
+              {step === 4 && <ExperienceStep data={data} update={update} />}
+              {step === 5 && <CertsStep data={data} update={update} />}
+              {step === 6 && <LanguagesStep data={data} update={update} />}
+              {step === 7 && <AdditionalStep data={data} update={updateAdditional} />}
+              {step === 8 && (
+                <PreviewStep
+                  data={data}
+                  template={resumeTemplate}
+                  setTemplate={setResumeTemplate}
+                  color={resumeColor}
+                  setColor={setResumeColor}
+                  onPrint={handlePrint}
+                  onDownload={handleDownload}
+                  onSave={handleSaveToProfile}
+                  saving={saving}
+                />
+              )}
+            </motion.div>
+          </AnimatePresence>
 
-      {/* Navigation */}
-      <div className="flex items-center justify-between pt-2">
-        <Button
-          variant="outline"
-          onClick={() => setStep((s) => Math.max(0, s - 1))}
-          disabled={step === 0}
-          className="gap-1.5"
-        >
-          <ChevronLeft className="w-4 h-4" /> Back
-        </Button>
-        {step < 8 && (
-          <Button
-            onClick={() => setStep((s) => Math.min(8, s + 1))}
-            disabled={!canProceed()}
-            className="gradient-emerald text-white gap-1.5 shadow-glow"
-          >
-            Next <ChevronRight className="w-4 h-4" />
-          </Button>
-        )}
-        {step === 8 && (
-          <Button
-            onClick={() => { setResumeData(data); pushToast({ title: "Resume data saved", type: "success" }); }}
-            className="gradient-emerald text-white gap-1.5 shadow-glow"
-          >
-            <Save className="w-4 h-4" /> Save Resume
-          </Button>
+          {/* Navigation */}
+          <div className="flex items-center justify-between pt-2">
+            <Button
+              variant="outline"
+              onClick={() => setStep((s) => Math.max(0, s - 1))}
+              disabled={step === 0}
+              className="gap-1.5"
+            >
+              <ChevronLeft className="w-4 h-4" /> Back
+            </Button>
+            {step < 8 && (
+              <Button
+                onClick={() => setStep((s) => Math.min(8, s + 1))}
+                disabled={!canProceed()}
+                className="gradient-emerald text-white gap-1.5 shadow-glow"
+              >
+                Next <ChevronRight className="w-4 h-4" />
+              </Button>
+            )}
+            {step === 8 && (
+              <Button
+                onClick={() => { setResumeData(data); pushToast({ title: "Resume data saved", type: "success" }); }}
+                className="gradient-emerald text-white gap-1.5 shadow-glow"
+              >
+                <Save className="w-4 h-4" /> Save Resume
+              </Button>
+            )}
+          </div>
+        </div>
+
+        {/* Sticky live preview */}
+        {step !== 8 && (
+          <aside className="hidden lg:block sticky top-24">
+            <Card className="overflow-hidden">
+              <CardHeader className="pb-2">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <Eye className="w-4 h-4 text-primary" /> Live Preview
+                  </CardTitle>
+                  <Badge variant="secondary" className="text-[10px] gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" /> Auto
+                  </Badge>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div>
+                  <Label className="text-[10px] uppercase tracking-wider text-muted-foreground">Template</Label>
+                  <div className="flex gap-1.5 mt-1.5">
+                    {(["classic", "modern", "minimal"] as const).map((t) => (
+                      <button
+                        key={t}
+                        onClick={() => setResumeTemplate(t)}
+                        className={cn(
+                          "flex-1 px-2 py-1.5 rounded-lg text-[10px] font-medium capitalize border transition-all",
+                          resumeTemplate === t
+                            ? "border-primary bg-primary/10 text-primary shadow-glow"
+                            : "border-border text-muted-foreground hover:border-primary/40"
+                        )}
+                      >
+                        {t}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <Label className="text-[10px] uppercase tracking-wider text-muted-foreground">Accent Color</Label>
+                  <div className="flex flex-wrap gap-1.5 mt-1.5">
+                    {COLORS.map((c) => (
+                      <button
+                        key={c}
+                        onClick={() => setResumeColor(c)}
+                        className={cn(
+                          "w-6 h-6 rounded-full transition-transform hover:scale-110",
+                          resumeColor === c && "ring-2 ring-offset-2 ring-offset-background ring-white/60 scale-110"
+                        )}
+                        style={{ background: c }}
+                        aria-label={`Color ${c}`}
+                      />
+                    ))}
+                  </div>
+                </div>
+                <div className="aspect-[210/297] w-full overflow-hidden rounded-lg border border-border bg-white shadow-premium">
+                  <div className="w-[200%] scale-50 origin-top-left">
+                    <ResumePreview data={data} template={resumeTemplate} color={resumeColor} />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </aside>
         )}
       </div>
 

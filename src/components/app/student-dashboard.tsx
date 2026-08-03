@@ -1,12 +1,14 @@
 "use client";
 import { motion } from "framer-motion";
 import {
-  Sparkles, Briefcase, Heart, Award, Bell, TrendingUp,
-  Target, ArrowRight, Loader2, CheckCircle2, Clock,
-  AlertCircle, Calendar, Zap,
+  Sparkles, Briefcase, Heart, Bell, TrendingUp,
+  Target, ArrowRight, Clock,
+  Calendar, Zap, FileText, ClipboardCheck,
+  MessageSquare, Bot, Video, ChevronRight,
 } from "lucide-react";
 import { useApp } from "@/lib/store";
 import { useQuery } from "@tanstack/react-query";
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -17,7 +19,7 @@ import { useState, useEffect } from "react";
 import { ProfileCompleteness } from "@/components/app/profile-completeness";
 
 export function StudentDashboard() {
-  const { user, navigate, pushToast } = useApp();
+  const { user, navigate, pushToast, setChatbotOpen } = useApp();
 
   // Fetch recommendations
   const { data: recData, isLoading: recLoading } = useQuery({
@@ -66,6 +68,28 @@ export function StudentDashboard() {
   const applications = appData?.applications || [];
   const notifications = notifData?.notifications || [];
   const unread = notifications.filter((n: any) => !n.read).length;
+  const interviews = applications.filter((a: any) => a.status === "INTERVIEW");
+  const savedCount = useApp.getState().savedInternships.length;
+
+  const chartData = [
+    { name: "Applied", value: applications.filter((a: any) => a.status === "APPLIED").length, color: "#6366f1" },
+    { name: "Review", value: applications.filter((a: any) => a.status === "REVIEW").length, color: "#f59e0b" },
+    { name: "Interview", value: applications.filter((a: any) => a.status === "INTERVIEW").length, color: "#06b6d4" },
+    { name: "Selected", value: applications.filter((a: any) => a.status === "SELECTED").length, color: "#22c55e" },
+    { name: "Rejected", value: applications.filter((a: any) => a.status === "REJECTED").length, color: "#ef4444" },
+  ].filter((d) => d.value > 0);
+
+  const quickActions = [
+    { label: "Resume Builder", desc: "Create & polish your resume", icon: FileText, view: "resume-builder", gradient: "from-indigo-500 to-violet-600" },
+    { label: "ATS Checker", desc: user?.atsScore ? `Current score ${user.atsScore}%` : "Optimize for ATS robots", icon: ClipboardCheck, view: "ats-checker", gradient: "from-cyan-500 to-blue-600" },
+    { label: "Interview Prep", desc: "Mock questions & feedback", icon: MessageSquare, view: "interview-prep", gradient: "from-violet-500 to-purple-600" },
+    { label: "AI Chatbot", desc: "Career guidance, 24/7", icon: Bot, view: "chatbot", gradient: "from-emerald-500 to-teal-600" },
+  ] as const;
+
+  const runAction = (a: (typeof quickActions)[number]) => {
+    if (a.view === "chatbot") setChatbotOpen(true);
+    else navigate(a.view);
+  };
 
   return (
     <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6 md:py-10 space-y-6">
@@ -110,10 +134,20 @@ export function StudentDashboard() {
               </Button>
             </div>
           </div>
-          <div className="hidden md:flex flex-col items-center justify-center bg-white/10 backdrop-blur rounded-2xl p-5 border border-white/20">
-            <div className="text-5xl font-bold text-white">{user?.profileCompleted}%</div>
-            <p className="text-white/80 text-xs mt-1">Profile Complete</p>
-            <Progress value={user?.profileCompleted || 0} className="mt-2 h-1.5 w-32 bg-white/20" />
+          <div className="hidden md:flex flex-col items-center justify-center gap-2 bg-white/10 backdrop-blur rounded-2xl p-5 border border-white/20">
+            {user?.atsScore !== undefined && (
+              <div className="text-center">
+                <div className="text-4xl font-bold text-white flex items-end gap-0.5">
+                  {user.atsScore}<span className="text-lg text-white/70">%</span>
+                </div>
+                <p className="text-white/80 text-xs mt-0.5">ATS Score</p>
+              </div>
+            )}
+            <div className="text-center">
+              <div className="text-5xl font-bold text-white">{user?.profileCompleted}%</div>
+              <p className="text-white/80 text-xs mt-1">Profile Complete</p>
+              <Progress value={user?.profileCompleted || 0} className="mt-2 h-1.5 w-32 bg-white/20" />
+            </div>
           </div>
         </div>
       </motion.div>
@@ -125,25 +159,29 @@ export function StudentDashboard() {
             label: "Recommendations",
             value: recommendations.length,
             icon: Sparkles,
-            color: "from-emerald-500 to-teal-600",
+            color: "from-indigo-500 to-cyan-500",
+            glow: "group-hover:shadow-[0_8px_30px_-6px_rgba(99,102,241,0.5)]",
           },
           {
             label: "Applications",
             value: applications.length,
             icon: Briefcase,
-            color: "from-amber-500 to-orange-600",
+            color: "from-amber-500 to-orange-500",
+            glow: "group-hover:shadow-[0_8px_30px_-6px_rgba(245,158,11,0.5)]",
           },
           {
             label: "Saved",
-            value: useApp.getState().savedInternships.length,
+            value: savedCount,
             icon: Heart,
-            color: "from-pink-500 to-rose-600",
+            color: "from-pink-500 to-rose-500",
+            glow: "group-hover:shadow-[0_8px_30px_-6px_rgba(236,72,153,0.5)]",
           },
           {
-            label: "Notifications",
-            value: unread,
-            icon: Bell,
+            label: "Interviews",
+            value: interviews.length,
+            icon: Video,
             color: "from-cyan-500 to-blue-600",
+            glow: "group-hover:shadow-[0_8px_30px_-6px_rgba(6,182,212,0.5)]",
           },
         ].map((stat, i) => (
           <motion.div
@@ -152,12 +190,12 @@ export function StudentDashboard() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.05 }}
           >
-            <Card className="hover:shadow-premium transition-shadow">
+            <Card className="group hover:shadow-premium transition-all hover:-translate-y-0.5 dark:bg-white/[0.04] dark:border-white/[0.08]">
               <CardContent className="p-4">
-                <div className={cn("w-10 h-10 rounded-xl bg-gradient-to-br flex items-center justify-center mb-3", stat.color)}>
+                <div className={cn("w-10 h-10 rounded-xl bg-gradient-to-br flex items-center justify-center mb-3 shadow-glow", stat.color, stat.glow)}>
                   <stat.icon className="w-5 h-5 text-white" />
                 </div>
-                <p className="text-2xl font-bold">{stat.value}</p>
+                <p className="text-2xl font-bold tracking-tight">{stat.value}</p>
                 <p className="text-xs text-muted-foreground">{stat.label}</p>
               </CardContent>
             </Card>
@@ -165,9 +203,123 @@ export function StudentDashboard() {
         ))}
       </div>
 
+      {/* Quick actions */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.15 }}
+      >
+        <h2 className="text-lg font-bold flex items-center gap-2 mb-3">
+          <Zap className="w-5 h-5 text-amber-400" /> Quick Actions
+        </h2>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+          {quickActions.map((a) => (
+            <button
+              key={a.label}
+              onClick={() => runAction(a)}
+              className="group text-left glass-card rounded-2xl border-white/[0.08] p-4 hover:border-white/[0.16] hover:-translate-y-0.5 transition-all duration-300 shadow-premium"
+            >
+              <div className={cn("w-10 h-10 rounded-xl bg-gradient-to-br flex items-center justify-center mb-3 shadow-glow", a.gradient)}>
+                <a.icon className="w-5 h-5 text-white" />
+              </div>
+              <p className="font-semibold text-sm">{a.label}</p>
+              <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">{a.desc}</p>
+              <span className="inline-flex items-center gap-1 text-xs text-primary mt-2 opacity-0 -translate-x-1 transition-all duration-300 group-hover:opacity-100 group-hover:translate-x-0">
+                Open <ChevronRight className="w-3 h-3" />
+              </span>
+            </button>
+          ))}
+        </div>
+      </motion.div>
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* AI Recommendations */}
         <div className="lg:col-span-2 space-y-4">
+          {/* Application activity chart */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+          >
+            <Card className="overflow-hidden">
+              <CardContent className="p-5">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h2 className="text-lg font-bold flex items-center gap-2">
+                      <TrendingUp className="w-5 h-5 text-cyan-400" />
+                      Application Activity
+                    </h2>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      Live breakdown of your {applications.length} applications
+                    </p>
+                  </div>
+                  <Button variant="ghost" size="sm" onClick={() => navigate("student-applications")} className="gap-1 text-xs">
+                    Manage <ArrowRight className="w-3 h-3" />
+                  </Button>
+                </div>
+                {applications.length === 0 ? (
+                  <div className="py-6 text-center">
+                    <Target className="w-10 h-10 text-muted-foreground mx-auto mb-2" />
+                    <p className="text-sm text-muted-foreground">
+                      Start applying to see your activity breakdown
+                    </p>
+                    <Button onClick={() => navigate("internships")} size="sm" className="mt-3 gap-1.5">
+                      <Briefcase className="w-4 h-4" /> Browse internships
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="flex flex-col sm:flex-row items-center gap-6">
+                    <div className="relative w-44 h-44 shrink-0">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <PieChart>
+                          <Pie
+                            data={chartData}
+                            dataKey="value"
+                            nameKey="name"
+                            innerRadius={58}
+                            outerRadius={80}
+                            paddingAngle={3}
+                            strokeWidth={0}
+                          >
+                            {chartData.map((d, i) => (
+                              <Cell key={i} fill={d.color} />
+                            ))}
+                          </Pie>
+                          <Tooltip
+                            contentStyle={{
+                              background: "rgba(17,24,39,0.9)",
+                              border: "1px solid rgba(255,255,255,0.1)",
+                              borderRadius: 12,
+                              color: "#fff",
+                              fontSize: 12,
+                            }}
+                            itemStyle={{ color: "#fff" }}
+                          />
+                        </PieChart>
+                      </ResponsiveContainer>
+                      <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                        <span className="text-2xl font-bold">{applications.length}</span>
+                        <span className="text-[10px] text-muted-foreground uppercase tracking-wide">Total</span>
+                      </div>
+                    </div>
+                    <div className="flex-1 w-full space-y-2">
+                      {chartData.map((d) => (
+                        <div key={d.name} className="flex items-center gap-2">
+                          <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: d.color }} />
+                          <span className="text-sm flex-1">{d.name}</span>
+                          <span className="text-sm font-semibold">{d.value}</span>
+                          <span className="text-xs text-muted-foreground w-12 text-right">
+                            {Math.round((d.value / applications.length) * 100)}%
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </motion.div>
+
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-xl font-bold flex items-center gap-2">
@@ -214,6 +366,51 @@ export function StudentDashboard() {
 
         {/* Sidebar: Recent applications + notifications */}
         <div className="space-y-4">
+          {/* Upcoming interviews */}
+          <Card className={cn(interviews.length > 0 && "border-cyan-400/30 bg-gradient-to-br from-cyan-500/[0.06] to-transparent")}>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base flex items-center gap-2">
+                <Video className="w-4 h-4 text-cyan-400" />
+                Upcoming Interviews
+                {interviews.length > 0 && (
+                  <Badge className="bg-cyan-500/15 text-cyan-500 border border-cyan-500/30 text-[10px]">{interviews.length}</Badge>
+                )}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              {interviews.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-3">
+                  No interviews scheduled yet. Apply to get shortlisted!
+                </p>
+              ) : (
+                interviews.slice(0, 3).map((app: any) => (
+                  <button
+                    key={app.id}
+                    onClick={() => navigate("student-applications")}
+                    className="w-full text-left p-2.5 rounded-xl bg-white/[0.04] border border-white/[0.08] hover:border-cyan-400/30 transition-colors"
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-9 h-9 rounded-lg gradient-primary flex items-center justify-center shrink-0 shadow-glow">
+                        <span className="text-white text-xs font-semibold">
+                          {app.internship?.company?.name?.charAt(0) || "I"}
+                        </span>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-medium truncate">{app.internship?.title}</p>
+                        <p className="text-[10px] text-muted-foreground truncate">
+                          {app.internship?.company?.name}
+                        </p>
+                      </div>
+                      <span className="text-[10px] px-2 py-1 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 shrink-0">
+                        Scheduled
+                      </span>
+                    </div>
+                  </button>
+                ))
+              )}
+            </CardContent>
+          </Card>
+
           {/* Recent applications */}
           <Card>
             <CardHeader className="pb-3">

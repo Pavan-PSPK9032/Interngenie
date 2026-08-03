@@ -367,11 +367,12 @@ export function CertificatesSection() {
                 key={c.id}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="p-4 rounded-xl border border-border/40 bg-card/30 space-y-2"
+                whileHover={{ y: -2 }}
+                className="p-4 rounded-xl glass-card border-white/[0.08] space-y-2 transition-shadow hover:shadow-[0_8px_30px_-6px_rgba(99,102,241,0.25)]"
               >
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex items-start gap-2.5 min-w-0">
-                    <div className="w-9 h-9 rounded-lg gradient-emerald flex items-center justify-center shrink-0">
+                    <div className="w-9 h-9 rounded-lg gradient-primary shadow-glow flex items-center justify-center shrink-0">
                       <Award className="w-4 h-4 text-white" />
                     </div>
                     <div className="min-w-0">
@@ -426,7 +427,7 @@ export function CertificatesSection() {
                   )}
                 </div>
 
-                <div className="flex items-center gap-2 pt-1 border-t border-border/40">
+                <div className="flex items-center gap-2 pt-1 border-t border-white/10">
                   <Button variant="ghost" size="sm" className="h-7 px-2 text-[11px]" onClick={() => startEdit(c)}>
                     Edit
                   </Button>

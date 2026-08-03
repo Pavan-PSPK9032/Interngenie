@@ -1,11 +1,14 @@
 "use client";
 import { useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useApp } from "@/lib/store";
 import { Navbar } from "@/components/app/navbar";
+import { Sidebar } from "@/components/app/sidebar";
 import { Footer } from "@/components/app/footer";
 import { BottomNav } from "@/components/app/bottom-nav";
 import { Chatbot } from "@/components/app/chatbot";
 import { ToastContainer } from "@/components/app/toast-container";
+import { AnimatedBackground } from "@/components/app/animated-background";
 
 import { LandingPage } from "@/components/app/landing-page";
 import { AuthView } from "@/components/app/auth-view";
@@ -116,9 +119,25 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
+    <div className="relative min-h-screen flex flex-col bg-background">
+      <AnimatedBackground />
       <Navbar />
-      <main className="flex-1 pb-16 md:pb-0">{renderView()}</main>
+      <div className="flex flex-1 w-full max-w-[1500px] mx-auto px-3 sm:px-4 pt-4 gap-4">
+        <Sidebar />
+        <main className="relative flex-1 pb-16 md:pb-4 min-w-0">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={view}
+              initial={{ opacity: 0, y: 14, filter: "blur(6px)" }}
+              animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+              exit={{ opacity: 0, y: -14, filter: "blur(6px)" }}
+              transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
+            >
+              {renderView()}
+            </motion.div>
+          </AnimatePresence>
+        </main>
+      </div>
       <Footer />
       <BottomNav />
       <Chatbot />
