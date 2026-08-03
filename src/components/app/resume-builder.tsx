@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   User as UserIcon, Mail, Phone, MapPin, Linkedin, Github, Globe,
@@ -60,25 +60,52 @@ function saveLocal(data: ResumeData) {
 }
 
 export function ResumeBuilder() {
-  const { resumeData, setResumeData, resumeTemplate, setResumeTemplate, resumeColor, setResumeColor, navigate, token, pushToast } = useApp();
+  const { resumeData, setResumeData, resumeTemplate, setResumeTemplate, resumeColor, setResumeColor, navigate, token, pushToast, historyTick, lastHistoryDomain, recordResumeEdit } = useApp();
   const [step, setStep] = useState(0);
   const [data, setData] = useState<ResumeData>(resumeData || loadSaved() || EMPTY_RESUME);
   const [activeSkillCategory, setActiveSkillCategory] = useState<string>(Object.keys(SKILL_TAXONOMY)[0]);
   const [saving, setSaving] = useState(false);
+  const dataRef = useRef<ResumeData>(data);
 
   useEffect(() => { saveLocal(data); }, [data]);
 
+  // Resync the editor document whenever an undo/redo restores resume state
+  useEffect(() => {
+    if (lastHistoryDomain !== "resume") return;
+    const next = useApp.getState().resumeData || loadSaved() || EMPTY_RESUME;
+    dataRef.current = next;
+    setData(next);
+  }, [historyTick, lastHistoryDomain]);
+
+  const snapshotFor = (resumeData: ResumeData) => ({
+    resumeData,
+    resumeTemplate: useApp.getState().resumeTemplate,
+    resumeColor: useApp.getState().resumeColor,
+  });
+
   const update = useCallback((patch: Partial<ResumeData>) => {
-    setData((prev) => ({ ...prev, ...patch }));
-  }, []);
+    const before = snapshotFor(dataRef.current);
+    const next = { ...dataRef.current, ...patch };
+    dataRef.current = next;
+    setData(next);
+    recordResumeEdit(before, snapshotFor(next));
+  }, [recordResumeEdit]);
 
   const updatePersonal = useCallback((patch: Partial<ResumeData["personal"]>) => {
-    setData((prev) => ({ ...prev, personal: { ...prev.personal, ...patch } }));
-  }, []);
+    const before = snapshotFor(dataRef.current);
+    const next = { ...dataRef.current, personal: { ...dataRef.current.personal, ...patch } };
+    dataRef.current = next;
+    setData(next);
+    recordResumeEdit(before, snapshotFor(next));
+  }, [recordResumeEdit]);
 
   const updateAdditional = useCallback((patch: Partial<ResumeData["additional"]>) => {
-    setData((prev) => ({ ...prev, additional: { ...prev.additional, ...patch } }));
-  }, []);
+    const before = snapshotFor(dataRef.current);
+    const next = { ...dataRef.current, additional: { ...dataRef.current.additional, ...patch } };
+    dataRef.current = next;
+    setData(next);
+    recordResumeEdit(before, snapshotFor(next));
+  }, [recordResumeEdit]);
 
   const canProceed = () => {
     switch (step) {

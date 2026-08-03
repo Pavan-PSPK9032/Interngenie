@@ -5,14 +5,15 @@ import {
   LayoutDashboard, Briefcase, User as UserIcon, LogOut,
   ChevronDown, Building2, Heart, Bookmark,
   FileText, ClipboardCheck, Calendar, BarChart3,
-  Brain, Bot, PanelLeft, ShieldCheck,
+  Brain, Bot, PanelLeft, ShieldCheck, Undo2, Redo2,
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useApp } from "@/lib/store";
 import { useSidebar } from "@/lib/sidebar-store";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -25,11 +26,32 @@ import { cn } from "@/lib/utils";
 import { GlobalSearch } from "@/components/app/global-search";
 
 export function Navbar() {
-  const { user, view, navigate, theme, toggleTheme, logout, notifications, savedInternships, setChatbotOpen } = useApp();
+  const { user, view, navigate, theme, toggleTheme, logout, notifications, savedInternships, setChatbotOpen, historyUndo, historyRedo, undo, redo, historyTick, lastHistoryAction } = useApp();
   const { collapsed, toggle } = useSidebar();
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const unread = notifications.filter((n) => !n.read).length;
+
+  // Global undo/redo keyboard shortcuts (Ctrl+Z / Ctrl+Y / Ctrl+Shift+Z).
+  // Inside text fields the browser handles native undo so form editing is preserved.
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (!(e.ctrlKey || e.metaKey)) return;
+      const t = e.target as HTMLElement | null;
+      if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable)) return;
+      const key = e.key.toLowerCase();
+      if (key === "z") {
+        e.preventDefault();
+        if (e.shiftKey) redo();
+        else undo();
+      } else if (key === "y") {
+        e.preventDefault();
+        redo();
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [undo, redo]);
 
   const navLinks: { label: string; view: any; icon: any }[] = [];
 
@@ -131,6 +153,56 @@ export function Navbar() {
             {/* Right side actions */}
             <div className="flex items-center gap-1.5">
               {user && <GlobalSearch />}
+
+              {/* Undo / Redo */}
+              {user && (
+                <>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="rounded-xl"
+                        onClick={undo}
+                        disabled={historyUndo.length === 0}
+                        aria-label="Undo (Ctrl+Z)"
+                      >
+                        <motion.span
+                          key={lastHistoryAction === "undo" ? `undo-${historyTick}` : "undo-static"}
+                          initial={{ rotate: -20, scale: 0.6, opacity: 0 }}
+                          animate={{ rotate: 0, scale: 1, opacity: 1 }}
+                          transition={{ type: "spring", stiffness: 420, damping: 22 }}
+                        >
+                          <Undo2 className="w-[18px] h-[18px]" />
+                        </motion.span>
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Undo (Ctrl+Z)</TooltipContent>
+                  </Tooltip>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="rounded-xl"
+                        onClick={redo}
+                        disabled={historyRedo.length === 0}
+                        aria-label="Redo (Ctrl+Y / Ctrl+Shift+Z)"
+                      >
+                        <motion.span
+                          key={lastHistoryAction === "redo" ? `redo-${historyTick}` : "redo-static"}
+                          initial={{ rotate: 20, scale: 0.6, opacity: 0 }}
+                          animate={{ rotate: 0, scale: 1, opacity: 1 }}
+                          transition={{ type: "spring", stiffness: 420, damping: 22 }}
+                        >
+                          <Redo2 className="w-[18px] h-[18px]" />
+                        </motion.span>
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Redo (Ctrl+Y / Ctrl+Shift+Z)</TooltipContent>
+                  </Tooltip>
+                </>
+              )}
 
               {/* Chatbot */}
               {user && (

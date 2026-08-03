@@ -1,5 +1,5 @@
 "use client";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   User as UserIcon, Mail, GraduationCap, Code, MapPin,
@@ -53,7 +53,7 @@ const TABS: Array<{ key: TabKey; label: string; icon: any }> = [
 ];
 
 export function StudentProfile() {
-  const { user, token, updateUser, pushToast, navigate } = useApp();
+  const { user, token, updateUser, pushToast, navigate, historyTick, lastHistoryDomain } = useApp();
   const queryClient = useQueryClient();
   const bannerRef = useRef<HTMLDivElement>(null);
   const bannerInputRef = useRef<HTMLInputElement>(null);
@@ -92,6 +92,36 @@ export function StudentProfile() {
   const [coverDragging, setCoverDragging] = useState(false);
   const [editingUsername, setEditingUsername] = useState(false);
   const [usernameDraft, setUsernameDraft] = useState(user?.username || "");
+
+  // Resync the edit form whenever an undo/redo restores profile state
+  useEffect(() => {
+    if (lastHistoryDomain !== "user") return;
+    const u = useApp.getState().user;
+    if (!u) return;
+    setForm({
+      name: u.name || "",
+      phone: u.phone || "",
+      college: u.college || "",
+      degree: u.degree || "",
+      branch: u.branch || "",
+      cgpa: u.cgpa || 0,
+      graduationYear: u.graduationYear || 2027,
+      skills: u.skills || [],
+      interests: u.interests || [],
+      preferredLocations: u.preferredLocations || [],
+      languages: u.languages || [],
+      linkedin: u.linkedin || "",
+      github: u.github || "",
+      portfolio: u.portfolio || "",
+      headline: u.headline || "",
+      location: u.location || "",
+      username: u.username || "",
+      careerObjective: u.careerObjective || "",
+      resumeText: "",
+    });
+    setBannerPos(u.bannerPosition || "50% 50%");
+    setUsernameDraft(u.username || "");
+  }, [historyTick, lastHistoryDomain]);
 
   // Career suggestions
   const { data: careerData } = useQuery({

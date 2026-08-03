@@ -1,6 +1,6 @@
 "use client";
 import { Shield, Loader2, Globe, Mail, Phone, Linkedin, Github, Briefcase, FolderGit2, Award, FileText, ScanLine } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useApp } from "@/lib/store";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -14,7 +14,7 @@ const VISIBILITY_OPTIONS: Array<{ value: ProfileVisibility; label: string; hint:
 ];
 
 export function PrivacySettings() {
-  const { user, token, updateUser, pushToast } = useApp();
+  const { user, token, updateUser, pushToast, historyTick, lastHistoryDomain } = useApp();
   const p = user?.privacySettings || {
     visibility: "public",
     profilePublic: true,
@@ -31,6 +31,14 @@ export function PrivacySettings() {
   };
   const [settings, setSettings] = useState(p);
   const [saving, setSaving] = useState(false);
+
+  // Resync local toggles whenever an undo/redo restores profile state
+  useEffect(() => {
+    if (lastHistoryDomain !== "user") return;
+    const u = useApp.getState().user;
+    if (!u?.privacySettings) return;
+    setSettings({ ...p, ...u.privacySettings });
+  }, [historyTick, lastHistoryDomain]);
 
   const save = async () => {
     setSaving(true);
