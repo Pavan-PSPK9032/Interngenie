@@ -272,25 +272,36 @@ export function StudentProfile() {
     new Promise<string>((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = () => resolve(reader.result as string);
-      reader.onerror = reject;
+      reader.onerror = () => reject(new Error("read failed"));
       reader.readAsDataURL(file);
     });
 
+  const decodeImage = (dataUrl: string) =>
+    new Promise<HTMLImageElement>((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.onerror = () => reject(new Error("decode failed"));
+      img.src = dataUrl;
+    });
+
   const handleFile = async (file: File | undefined, kind: "banner" | "avatar") => {
-    if (!file) return;
-    const okType = ["image/jpeg", "image/png", "image/webp"].includes(file.type);
-    if (!okType) {
-      pushToast({ title: "Unsupported format", message: "Use JPG, PNG, or WEBP", type: "error" });
+    if (!file) {
+      pushToast({ title: "No file selected", message: "Please pick an image to continue", type: "error" });
       return;
     }
     if (file.size > 5 * 1024 * 1024) {
       pushToast({ title: "File too large", message: "Maximum size is 5 MB", type: "error" });
       return;
     }
-    const dataUrl = await readFileAsDataUrl(file);
-    setEditorKind(kind);
-    setEditorSrc(dataUrl);
-    setEditorOpen(true);
+    try {
+      const dataUrl = await readFileAsDataUrl(file);
+      await decodeImage(dataUrl);
+      setEditorKind(kind);
+      setEditorSrc(dataUrl);
+      setEditorOpen(true);
+    } catch {
+      pushToast({ title: "Could not read this image", message: `${file.name} isn't a valid image`, type: "error" });
+    }
   };
 
   const applyEditedImage = async (dataUrl: string) => {
@@ -717,14 +728,14 @@ export function StudentProfile() {
       <input
         ref={bannerInputRef}
         type="file"
-        accept="image/jpeg,image/png,image/webp"
+        accept="image/*"
         className="hidden"
         onChange={(e) => { handleFile(e.target.files?.[0], "banner"); e.target.value = ""; }}
       />
       <input
         ref={avatarInputRef}
         type="file"
-        accept="image/jpeg,image/png,image/webp"
+        accept="image/*"
         className="hidden"
         onChange={(e) => { handleFile(e.target.files?.[0], "avatar"); e.target.value = ""; }}
       />
