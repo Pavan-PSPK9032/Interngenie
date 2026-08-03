@@ -1,6 +1,6 @@
 "use client";
 import { motion, AnimatePresence } from "framer-motion";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import {
   Sparkles, GraduationCap, Building2, ArrowRight,
   Mail, Lock, User as UserIcon, Eye, EyeOff, Loader2, CheckCircle2,
