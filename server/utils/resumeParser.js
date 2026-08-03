@@ -3,12 +3,14 @@ const { SKILL_TAXONOMY } = require("./aiEngine");
 const SECTION_PATTERNS = {
   education: /(?:^|\n)\s*(?:education|academic\s+background|qualification|edu(?:cation)?)\s*[:\-#]/i,
   experience: /(?:^|\n)\s*(?:experience|work\s+experience|employment|internship|professional\s+experience|work\s+history)\s*[:\-#]/i,
-  skills: /(?:^|\n)\s*(?:skills|technical\s+skills|competencies|technologies|tech\s+stack)\s*[:\-#]/i,
+  skills: /(?:^|\n)\s*(?:skills|technical\s+skills|competencies|technologies|tech\s+stack|soft\s+skills|core\s+competencies)\s*[:\-#]/i,
   projects: /(?:^|\n)\s*(?:projects?|personal\s+projects?|key\s+projects?|portfolio)\s*[:\-#]/i,
   certifications: /(?:^|\n)\s*(?:certifications?|licenses?|credentials?|certified)\s*[:\-#]/i,
   achievements: /(?:^|\n)\s*(?:awards?|honors?|achievements?|recognition|extracurricular)\s*[:\-#]/i,
   summary: /(?:^|\n)\s*(?:summary|objective|profile|about|professional\s+summary|career\s+objective|career\s+summary)\s*[:\-#]/i,
   languages: /(?:^|\n)\s*(?:languages?|linguistic)\s*[:\-#]/i,
+  interests: /(?:^|\n)\s*(?:interests?|hobbies|passions|activities)\s*[:\-#]/i,
+  courses: /(?:^|\n)\s*(?:courses?|coursework|training|online\s+courses?|certifications?)\s*[:\-#]/i,
 };
 
 const DEGREE_PATTERNS = [
@@ -46,6 +48,14 @@ const LANGUAGE_LIST = [
 
 const PROFICIENCY_LEVELS = ["native", "fluent", "advanced", "intermediate", "beginner", "professional", "working knowledge", "basic"];
 
+const SOFT_SKILLS = [
+  "communication", "leadership", "teamwork", "problem solving", "critical thinking",
+  "adaptability", "time management", "creativity", "collaboration", "negotiation",
+  "presentation", "public speaking", "analytical", "detail oriented", "organization",
+  "project management", "mentoring", "conflict resolution", "decision making",
+  "emotional intelligence", "customer service", "strategic planning",
+];
+
 function splitIntoSections(text) {
   const sections = {};
   const lines = text.split("\n");
@@ -81,11 +91,19 @@ function extractPersonalInfo(text, firstLines) {
   const phoneRe = /(\+?\d{1,3}[-.\s]?)?\(?\d{2,4}\)?[-.\s]?\d{3,4}[-.\s]?\d{3,4}/g;
   const linkedinRe = /(?:https?:\/\/)?(?:www\.)?linkedin\.com\/in\/[a-zA-Z0-9_-]+/gi;
   const githubRe = /(?:https?:\/\/)?(?:www\.)?github\.com\/[a-zA-Z0-9_-]+/gi;
+  const portfolioRe = /(?:https?:\/\/)?(?:www\.)?[a-zA-Z0-9_-]+\.(?:dev|io|com|net|me|app|tech|xyz|online|site|portfolio)/gi;
+  const dobRe = /\b(?:0?[1-9]|[12]\d|3[01])[\/\-\.](?:0?[1-9]|1[0-2])[\/\-\.]\d{4}\b|\b(?:19|20)\d{2}[\/\-\.]\d{1,2}[\/\-\.]\d{1,2}\b|\b(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\s+\d{1,2},?\s+\d{4}\b/gi;
+  const genderRe = /\b(male|female|other|non-binary|prefer not to say)\b/i;
 
   const emails = Array.from(new Set((text.match(emailRe) || [])));
   const phones = Array.from(new Set((text.match(phoneRe) || []))).map((p) => p.trim()).filter((p) => p.replace(/\D/g, "").length >= 7);
   const linkedin = (text.match(linkedinRe) || [])[0] || "";
   const github = (text.match(githubRe) || [])[0] || "";
+  const portfolio = (text.match(portfolioRe) || [])[0] || "";
+  const dobMatch = text.match(dobRe);
+  const dob = dobMatch ? dobMatch[0] : "";
+  const genderMatch = text.match(genderRe);
+  const gender = genderMatch ? genderMatch[0].charAt(0).toUpperCase() + genderMatch[0].slice(1).toLowerCase() : "";
 
   let name = "";
   const preambleLines = (firstLines || "").split("\n").filter((l) => l.trim().length > 0);
@@ -114,8 +132,11 @@ function extractPersonalInfo(text, firstLines) {
     email: emails[0] || "",
     phone: phones[0] || "",
     address,
-    linkedin: linkedin || "",
-    github: github || "",
+    linkedin,
+    github,
+    portfolio,
+    dob,
+    gender,
   };
 }
 
@@ -377,6 +398,53 @@ function extractAchievements(sectionText) {
     .slice(0, 15);
 }
 
+function extractInterests(sectionText) {
+  if (!sectionText) return [];
+  return sectionText
+    .split(/[,;\n]/)
+    .map((l) => l.replace(/^[-•*]\s*/, "").trim())
+    .filter((l) => l.length > 1 && l.length < 50 && !/^(and|or|the|with)$/i.test(l))
+    .slice(0, 15);
+}
+
+function extractCourses(sectionText) {
+  if (!sectionText) return [];
+  const courses = [];
+  const lines = sectionText.split("\n").filter((l) => l.trim());
+  for (const line of lines) {
+    const cleaned = line.replace(/^[-•*]\s*/, "").trim();
+    if (cleaned.length < 3) continue;
+    const platformRe = /(?:coursera|udemy|edx|nptel|swayam|google|microsoft|ibm|cisco|linkedin learning|khan academy|freecodecamp)/i;
+    const platformMatch = cleaned.match(platformRe);
+    const platform = platformMatch ? platformMatch[0] : "";
+    const dateRe = /(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\w*\.?\s*\d{4}|\d{4}/i;
+    const dateMatch = cleaned.match(dateRe);
+    const date = dateMatch ? dateMatch[0] : "";
+    const name = cleaned
+      .replace(platformRe, "")
+      .replace(dateRe, "")
+      .replace(/[-–—]/g, "")
+      .trim();
+    if (name.length > 2) {
+      courses.push({ name, platform, date });
+    }
+  }
+  return courses.slice(0, 15);
+}
+
+function extractSoftSkills(sectionText, allText) {
+  const softSkills = [];
+  const searchText = (sectionText || "") + "\n" + (allText || "");
+  const lower = searchText.toLowerCase();
+  for (const skill of SOFT_SKILLS) {
+    const re = new RegExp(`\\b${skill.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`, "i");
+    if (re.test(lower)) {
+      softSkills.push({ name: skill, category: "soft" });
+    }
+  }
+  return softSkills;
+}
+
 function extractSummary(sectionText) {
   if (!sectionText) return "";
   return sectionText.split("\n").map((l) => l.trim()).filter(Boolean).join(" ").slice(0, 500);
@@ -385,9 +453,10 @@ function extractSummary(sectionText) {
 function parseResume(text) {
   if (!text || text.trim().length < 10) {
     return {
-      personal: { name: "", email: "", phone: "", address: "", linkedin: "", github: "" },
-      education: [], skills: [], projects: [], experience: [],
-      certifications: [], languages: [], achievements: [], summary: "",
+      personal: { name: "", email: "", phone: "", address: "", linkedin: "", github: "", portfolio: "", dob: "", gender: "" },
+      education: [], skills: [], softSkills: [], projects: [], experience: [],
+      certifications: [], languages: [], achievements: [], interests: [], courses: [],
+      summary: "",
     };
   }
 
@@ -395,16 +464,21 @@ function parseResume(text) {
   const preamble = sections.preamble || text.split("\n").slice(0, 5).join("\n");
 
   const personal = extractPersonalInfo(text, preamble);
+  const skills = extractSkills(sections.skills || "");
+  const softSkills = extractSoftSkills(sections.skills || "", text);
 
   return {
     personal,
     education: extractEducation(sections.education || ""),
-    skills: extractSkills(sections.skills || ""),
+    skills,
+    softSkills,
     projects: extractProjects(sections.projects || ""),
     experience: extractExperience(sections.experience || ""),
     certifications: extractCertifications(sections.certifications || ""),
     languages: extractLanguages(sections.languages || ""),
     achievements: extractAchievements(sections.achievements || ""),
+    interests: extractInterests(sections.interests || ""),
+    courses: extractCourses(sections.courses || ""),
     summary: extractSummary(sections.summary || ""),
   };
 }

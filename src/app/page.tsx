@@ -29,6 +29,8 @@ import { InterviewPrep } from "@/components/app/interview-prep";
 import { ProfileWizard } from "@/components/app/profile-wizard";
 import { VoiceAssistant } from "@/components/app/voice-assistant";
 import { ForgotPassword } from "@/components/app/forgot-password";
+import { RegisterResume } from "@/components/app/register-resume";
+import { PublicProfileView } from "@/components/app/public-profile";
 
 export default function Home() {
   const { view, user, navigate } = useApp();
@@ -104,6 +106,10 @@ export default function Home() {
         return user ? <InterviewPrep /> : <AuthView />;
       case "profile-wizard":
         return user ? <ProfileWizard /> : <AuthView />;
+      case "register-resume":
+        return user ? <StudentDashboard /> : <RegisterResume />;
+      case "public-profile":
+        return <PublicProfileView />;
       default:
         return <LandingPage />;
     }

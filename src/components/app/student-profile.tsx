@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import {
   User as UserIcon, Mail, Phone, GraduationCap, Code, MapPin,
   Languages, Link as LinkIcon, Upload, FileText, Sparkles,
-  CheckCircle2, XCircle, Loader2, Save, Brain, Target, Award,
+  CheckCircle2, XCircle, Loader2, Save, Brain, Target,
   Github, Linkedin, Globe,
 } from "lucide-react";
 import { useApp } from "@/lib/store";
@@ -18,6 +18,9 @@ import { Progress } from "@/components/ui/progress";
 import { useState, useRef } from "react";
 import { cn } from "@/lib/utils";
 import { ALL_SKILLS, SKILL_CATEGORIES, SKILL_TAXONOMY } from "@/lib/constants";
+import { CertificatesSection } from "@/components/app/certificates-section";
+import { PrivacySettings } from "@/components/app/privacy-settings";
+import { ProfileCompleteness } from "@/components/app/profile-completeness";
 
 export function StudentProfile() {
   const { user, token, updateUser, pushToast } = useApp();
@@ -69,11 +72,11 @@ export function StudentProfile() {
     enabled: !!user,
   });
 
-  // Certificates
-  const { data: certData } = useQuery({
-    queryKey: ["certificates", user?.id],
+  // Profile completeness
+  const { data: completenessData } = useQuery({
+    queryKey: ["profile-completeness"],
     queryFn: async () => {
-      const res = await fetch("/api/certificates", {
+      const res = await fetch("/api/profile/completeness", {
         headers: { Authorization: `Bearer ${token}` },
       });
       return res.json();
@@ -170,7 +173,7 @@ export function StudentProfile() {
           </p>
         </div>
         <div className="text-right">
-          <div className="text-2xl font-bold gradient-text">{user.profileCompleted}%</div>
+          <div className="text-2xl font-bold gradient-text">{completenessData?.score ?? user.profileCompleted}%</div>
           <p className="text-xs text-muted-foreground">Complete</p>
         </div>
       </div>
@@ -468,6 +471,12 @@ export function StudentProfile() {
             </CardContent>
           </Card>
 
+          {/* Certificates */}
+          <CertificatesSection />
+
+          {/* Privacy settings */}
+          <PrivacySettings />
+
           <Button
             onClick={save}
             disabled={saving}
@@ -547,30 +556,8 @@ export function StudentProfile() {
             </CardContent>
           </Card>
 
-          {/* Certificates */}
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base flex items-center gap-2">
-                <Award className="w-4 h-4 text-primary" />
-                Certificates
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              {(certData?.certificates || []).length === 0 ? (
-                <p className="text-xs text-muted-foreground text-center py-3">
-                  No certificates yet. Complete an internship to earn one!
-                </p>
-              ) : (
-                (certData?.certificates || []).map((c: any) => (
-                  <div key={c.id} className="p-3 rounded-xl gradient-emerald text-white">
-                    <p className="text-xs font-semibold">{c.internshipTitle}</p>
-                    <p className="text-[10px] text-white/80">{c.companyName}</p>
-                    <p className="text-[10px] text-white/60 mt-1">{c.certificateId}</p>
-                  </div>
-                ))
-              )}
-            </CardContent>
-          </Card>
+          {/* Profile completeness */}
+          <ProfileCompleteness />
         </div>
       </div>
     </div>

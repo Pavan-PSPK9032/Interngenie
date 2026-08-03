@@ -1,6 +1,14 @@
 const router = require("express").Router();
-const { update } = require("../controllers/profileController");
+const {
+  getPublicProfile,
+  updatePrivacySettings,
+  getProfileCompleteness,
+  updateProfile,
+} = require("../controllers/profileController");
 
-router.patch("/", update);
+router.patch("/", updateProfile);
+router.patch("/privacy", updatePrivacySettings);
+router.get("/completeness", getProfileCompleteness);
+router.get("/public/:userId", getPublicProfile);
 
 module.exports = router;

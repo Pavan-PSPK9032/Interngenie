@@ -445,6 +445,25 @@ export function AuthView() {
                             </button>
                           ))}
                         </div>
+
+                        {role === "STUDENT" && (
+                          <button
+                            type="button"
+                            onClick={() => navigate("register-resume")}
+                            className="w-full mt-1 flex items-center gap-3 p-3 rounded-xl border border-dashed border-primary/40 bg-primary/5 hover:bg-primary/10 transition-all text-left group"
+                          >
+                            <div className="w-9 h-9 rounded-lg gradient-emerald flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                              <Zap className="w-4 h-4 text-white" />
+                            </div>
+                            <div className="flex-1">
+                              <span className="text-sm font-semibold text-primary block">Smart Registration</span>
+                              <span className="text-[11px] text-muted-foreground">
+                                Upload your resume — we'll auto-fill your profile
+                              </span>
+                            </div>
+                            <ArrowRight className="w-4 h-4 text-primary shrink-0" />
+                          </button>
+                        )}
                       </div>
                     )}
 

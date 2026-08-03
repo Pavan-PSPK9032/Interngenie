@@ -25,7 +25,9 @@ export type ViewKey =
   | "profile-wizard"
   | "voice-assistant"
   | "forgot-password"
-  | "admin-ai-dashboard";
+  | "admin-ai-dashboard"
+  | "public-profile"
+  | "register-resume";
 
 export type WorkMode = "remote" | "hybrid" | "onsite";
 
@@ -103,6 +105,7 @@ export interface User {
   role: Role;
   avatarUrl?: string;
   phone?: string;
+  address?: string;
   college?: string;
   degree?: string;
   branch?: string;
@@ -116,12 +119,32 @@ export interface User {
   github?: string;
   portfolio?: string;
   resumeUrl?: string;
+  resumeText?: string;
   extractedSkills: string[];
   profileCompleted: number;
   companyId?: string;
   isVerified: boolean;
   isApproved: boolean;
   emailVerified: boolean;
+  dob?: string;
+  gender?: string;
+  careerObjective?: string;
+  projects?: Array<Record<string, unknown>>;
+  experience?: Array<Record<string, unknown>>;
+  certifications?: Array<Record<string, unknown>>;
+  courses?: Array<Record<string, unknown>>;
+  achievements?: string[];
+  privacySettings?: {
+    profilePublic: boolean;
+    showEmail: boolean;
+    showPhone: boolean;
+    showLinkedIn: boolean;
+    showGitHub: boolean;
+    showPortfolio: boolean;
+    showCertificates: boolean;
+    showProjects: boolean;
+    showExperience: boolean;
+  };
 }
 
 export interface Notification {
@@ -248,15 +271,104 @@ export interface ResumeData {
 }
 
 export interface ParsedResume {
-  personal: { name: string; email: string; phone: string; address: string; linkedin: string; github: string; };
+  personal: { name: string; email: string; phone: string; address: string; linkedin: string; github: string; portfolio?: string; dob?: string; gender?: string; };
   education: Array<{ institution: string; degree: string; branch: string; cgpa: number; startYear: number; endYear: number; }>;
   skills: Array<{ name: string; category: string; }>;
+  softSkills?: Array<{ name: string; category: string; }>;
   projects: Array<{ title: string; description: string; technologies: string[]; }>;
   experience: Array<{ company: string; role: string; description: string; startDate: string; endDate: string; }>;
   certifications: Array<{ name: string; issuer: string; date: string; }>;
   languages: Array<{ name: string; proficiency: string; }>;
   achievements: string[];
+  interests?: string[];
+  courses?: Array<{ name: string; platform: string; date: string; }>;
   summary: string;
+}
+
+export interface SearchResult {
+  students: Array<{
+    id: string;
+    name: string;
+    avatarUrl: string;
+    email: string;
+    college: string;
+    branch: string;
+    degree: string;
+    skills: string[];
+    graduationYear: number;
+    status: string;
+  }>;
+  companies: Array<{
+    id: string;
+    name: string;
+    logoUrl: string;
+    industry: string;
+    location: string;
+    description: string;
+  }>;
+  internships: Array<{
+    id: string;
+    title: string;
+    domain: string;
+    location: string;
+    company: string;
+    companyId: string;
+    skills: string[];
+    stipend: number;
+    workMode: string;
+  }>;
+}
+
+export interface PublicProfile {
+  id: string;
+  name: string;
+  avatarUrl: string;
+  college: string;
+  branch: string;
+  degree: string;
+  graduationYear: number;
+  cgpa: number;
+  skills: string[];
+  summary: string;
+  interests: string[];
+  achievements: string[];
+  languages: string[];
+  profileCompleted: number;
+  email?: string;
+  phone?: string;
+  linkedin?: string;
+  github?: string;
+  portfolio?: string;
+  projects?: Array<Record<string, unknown>>;
+  experience?: Array<Record<string, unknown>>;
+  certificates?: Array<{
+    id: string;
+    name: string;
+    organization: string;
+    category: string;
+    issueDate: string;
+    credentialId: string;
+    verificationLink: string;
+    fileUrl: string;
+    fileType: string;
+    description: string;
+  }>;
+  atsScore?: number;
+  atsGrade?: string;
+  completedInternships: number;
+  completedInternshipDetails?: Array<{ title: string; companyId: string }>;
+}
+
+export interface ProfileCompleteness {
+  score: number;
+  suggestions: Array<{ label: string; missing?: boolean; done?: boolean }>;
+  stats: {
+    skills: number;
+    projects: number;
+    experience: number;
+    certificates: number;
+    certifications: number;
+  };
 }
 
 export interface ATSBreakdown {

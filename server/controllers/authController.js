@@ -1,8 +1,76 @@
 const crypto = require("crypto");
 const User = require("../models/User");
 const Token = require("../models/Token");
+const { parseResume } = require("../utils/resumeParser");
 const { generateToken, hashPassword, verifyPassword, sanitizeUser, generateResetToken, generateVerificationToken } = require("../utils/helpers");
 const { sendPasswordResetEmail, sendVerificationEmail } = require("../utils/email");
+
+exports.registerWithResume = async (req, res, next) => {
+  try {
+    const { resumeText, resumeData, additionalFields, password } = req.body;
+    
+    if (!resumeText || !resumeData) {
+      return res.status(400).json({ error: "Resume data is required" });
+    }
+    if (!password || password.length < 6) {
+      return res.status(400).json({ error: "Password must be at least 6 characters" });
+    }
+
+    const parsed = typeof resumeData === "string" ? parseResume(resumeText) : resumeData;
+    const personal = parsed.personal || {};
+    const email = personal.email || additionalFields?.email;
+    const name = personal.name || additionalFields?.name;
+
+    if (!email || !name) {
+      return res.status(400).json({ 
+        error: "Email and name are required",
+        missing: { email: !email, name: !name }
+      });
+    }
+
+    const existing = await User.findOne({ email });
+    if (existing) return res.status(409).json({ error: "Email already registered" });
+
+    const user = await User.create({
+      email,
+      passwordHash: hashPassword(password),
+      name,
+      role: "STUDENT",
+      isVerified: true,
+      isApproved: true,
+      emailVerified: true,
+      phone: personal.phone || "",
+      address: personal.address || "",
+      linkedin: personal.linkedin || "",
+      github: personal.github || "",
+      portfolio: personal.portfolio || "",
+      dob: personal.dob || "",
+      gender: personal.gender || "",
+      college: parsed.education?.[0]?.institution || "",
+      degree: parsed.education?.[0]?.degree || "",
+      branch: parsed.education?.[0]?.branch || "",
+      cgpa: parsed.education?.[0]?.cgpa || 0,
+      graduationYear: parsed.education?.[0]?.endYear || 0,
+      skills: [...(parsed.skills || []).map((s) => s.name), ...(parsed.softSkills || []).map((s) => s.name)],
+      extractedSkills: [...(parsed.skills || []).map((s) => s.name), ...(parsed.softSkills || []).map((s) => s.name)],
+      resumeText,
+      resumeData: parsed,
+      interests: parsed.interests || [],
+      preferredLocations: additionalFields?.preferredLocation ? [additionalFields.preferredLocation] : [],
+      projects: parsed.projects || [],
+      experience: parsed.experience || [],
+      certifications: parsed.certifications || [],
+      languages: parsed.languages || [],
+      achievements: parsed.achievements || [],
+      courses: parsed.courses || [],
+      careerObjective: parsed.summary || "",
+      profileCompleted: 80,
+    });
+
+    const token = generateToken(user);
+    return res.json({ user: sanitizeUser(user), token });
+  } catch (err) { next(err); }
+};
 
 exports.login = async (req, res, next) => {
   try {

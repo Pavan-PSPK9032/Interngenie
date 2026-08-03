@@ -8,7 +8,8 @@ interface AppState {
   view: ViewKey;
   selectedInternshipId: string | null;
   selectedApplicantInternshipId: string | null;
-  navigate: (view: ViewKey, opts?: { internshipId?: string }) => void;
+  selectedUserId: string | null;
+  navigate: (view: ViewKey, opts?: { internshipId?: string; userId?: string }) => void;
 
   // Auth
   user: User | null;
@@ -55,11 +56,13 @@ export const useApp = create<AppState>()(
       view: "home",
       selectedInternshipId: null,
       selectedApplicantInternshipId: null,
+      selectedUserId: null,
       navigate: (view, opts) =>
         set({
           view,
           selectedInternshipId: opts?.internshipId ?? get().selectedInternshipId,
           selectedApplicantInternshipId: opts?.internshipId ?? get().selectedApplicantInternshipId,
+          selectedUserId: opts?.userId ?? get().selectedUserId,
         }),
 
       user: null,

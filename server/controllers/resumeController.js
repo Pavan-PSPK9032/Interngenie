@@ -40,11 +40,13 @@ exports.uploadAndParse = async (req, res, next) => {
 
     const parsed = parseResume(resumeText);
 
-    await User.findByIdAndUpdate(req.user.id, {
-      resumeText,
-      resumeData: parsed,
-      extractedSkills: parsed.skills.map((s) => s.name),
-    });
+    if (req.user?.id) {
+      await User.findByIdAndUpdate(req.user.id, {
+        resumeText,
+        resumeData: parsed,
+        extractedSkills: parsed.skills.map((s) => s.name),
+      });
+    }
 
     return res.json({ parsed, resumeText });
   } catch (err) {

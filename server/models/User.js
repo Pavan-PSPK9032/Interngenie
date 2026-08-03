@@ -8,6 +8,7 @@ const userSchema = new mongoose.Schema({
   role: { type: String, enum: ["STUDENT", "COMPANY", "ADMIN"], default: "STUDENT" },
   avatarUrl: { type: String },
   phone: { type: String },
+  address: { type: String },
   college: { type: String },
   degree: { type: String },
   branch: { type: String },
@@ -29,8 +30,28 @@ const userSchema = new mongoose.Schema({
   isVerified: { type: Boolean, default: false },
   isApproved: { type: Boolean, default: true },
   emailVerified: { type: Boolean, default: true },
+  dob: { type: String },
+  gender: { type: String },
+  careerObjective: { type: String },
+  projects: { type: [mongoose.Schema.Types.Mixed], default: [] },
+  experience: { type: [mongoose.Schema.Types.Mixed], default: [] },
+  certifications: { type: [mongoose.Schema.Types.Mixed], default: [] },
+  courses: { type: [mongoose.Schema.Types.Mixed], default: [] },
+  achievements: { type: [String], default: [] },
+  privacySettings: {
+    profilePublic: { type: Boolean, default: false },
+    showEmail: { type: Boolean, default: false },
+    showPhone: { type: Boolean, default: false },
+    showLinkedIn: { type: Boolean, default: true },
+    showGitHub: { type: Boolean, default: true },
+    showPortfolio: { type: Boolean, default: true },
+    showCertificates: { type: Boolean, default: true },
+    showProjects: { type: Boolean, default: true },
+    showExperience: { type: Boolean, default: true },
+  },
 }, { timestamps: true });
 
 userSchema.index({ role: 1 });
+userSchema.index({ "privacySettings.profilePublic": 1, role: 1 });
 
 module.exports = mongoose.model("User", userSchema);

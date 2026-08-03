@@ -14,6 +14,7 @@ import { Progress } from "@/components/ui/progress";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
+import { ProfileCompleteness } from "@/components/app/profile-completeness";
 
 export function StudentDashboard() {
   const { user, navigate, pushToast } = useApp();
@@ -264,6 +265,9 @@ export function StudentDashboard() {
               )}
             </CardContent>
           </Card>
+
+          {/* Profile completeness */}
+          <ProfileCompleteness />
 
           {/* Notifications */}
           <Card>

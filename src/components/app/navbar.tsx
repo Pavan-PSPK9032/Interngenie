@@ -21,6 +21,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
+import { GlobalSearch } from "@/components/app/global-search";
 
 export function Navbar() {
   const { user, view, navigate, theme, toggleTheme, logout, notifications, savedInternships } = useApp();
@@ -110,6 +111,9 @@ export function Navbar() {
                   </button>
                 ))}
               </nav>
+
+              {/* Global search */}
+              {user && <GlobalSearch />}
 
               {/* Right side actions */}
               <div className="flex items-center gap-2">
