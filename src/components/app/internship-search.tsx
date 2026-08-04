@@ -63,6 +63,7 @@ export function InternshipSearch() {
     queryKey: ["internships", queryStr],
     queryFn: async () => {
       const res = await fetch(`/api/internships?${queryStr}`);
+      if (!res.ok) return { internships: [] };
       return res.json();
     },
   });

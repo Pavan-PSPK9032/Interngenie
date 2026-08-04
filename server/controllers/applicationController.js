@@ -1,3 +1,4 @@
+const mongoose = require("mongoose");
 const Application = require("../models/Application");
 const Internship = require("../models/Internship");
 const Company = require("../models/Company");
@@ -40,7 +41,8 @@ exports.getAll = async (req, res, next) => {
     internships.forEach((i) => { internshipMap[i._id.toString()] = i; });
 
     const companyIds = [...new Set(internships.map((i) => i.companyId))];
-    const companies = await Company.find({ _id: { $in: companyIds } }).lean();
+    const validCompanyIds = companyIds.filter((id) => mongoose.isValidObjectId(id));
+    const companies = await Company.find({ _id: { $in: validCompanyIds } }).lean();
     const companyMap = {};
     companies.forEach((c) => { companyMap[c._id.toString()] = c; });
 
@@ -158,7 +160,7 @@ exports.update = async (req, res, next) => {
       await Notification.create({ userId: app.studentId, title, message: msg, type: notifType });
 
       if (status === "SELECTED") {
-        const company = internship ? await Company.findById(internship.companyId).lean() : null;
+        const company = internship && internship.companyId && mongoose.isValidObjectId(internship.companyId) ? await Company.findById(internship.companyId).lean() : null;
         const { default: User } = require("../models/User");
         const student = await User.findById(app.studentId).lean();
         const certId = "CERT-" + Math.random().toString(36).slice(2, 10).toUpperCase();

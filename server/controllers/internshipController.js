@@ -1,3 +1,4 @@
+const mongoose = require("mongoose");
 const Internship = require("../models/Internship");
 const Company = require("../models/Company");
 
@@ -43,7 +44,8 @@ exports.getAll = async (req, res, next) => {
 
     // Attach company info
     const companyIds = [...new Set(list.map((i) => i.companyId))];
-    const companies = await Company.find({ _id: { $in: companyIds } }).lean();
+    const validCompanyIds = companyIds.filter((id) => mongoose.isValidObjectId(id));
+    const companies = await Company.find({ _id: { $in: validCompanyIds } }).lean();
     const companyMap = {};
     companies.forEach((c) => { companyMap[c._id.toString()] = c; });
 
@@ -71,10 +73,16 @@ exports.getAll = async (req, res, next) => {
 
 exports.getById = async (req, res, next) => {
   try {
-    const i = await Internship.findById(req.params.id).lean();
+    const { id } = req.params;
+    let i = mongoose.isValidObjectId(id)
+      ? await Internship.findById(id).lean()
+      : null;
+    if (!i) {
+      i = await Internship.collection.findOne({ _id: id });
+    }
     if (!i) return res.status(404).json({ error: "Not found" });
 
-    const company = i.companyId ? await Company.findById(i.companyId).lean() : null;
+    const company = i.companyId && mongoose.isValidObjectId(i.companyId) ? await Company.findById(i.companyId).lean() : null;
     return res.json({
       internship: {
         id: i._id.toString(), title: i.title, companyId: i.companyId,

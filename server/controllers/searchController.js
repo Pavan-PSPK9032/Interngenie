@@ -1,3 +1,4 @@
+const mongoose = require("mongoose");
 const User = require("../models/User");
 const Company = require("../models/Company");
 const Internship = require("../models/Internship");
@@ -163,7 +164,8 @@ exports.globalSearch = async (req, res, next) => {
       const internships = await internshipQuery;
 
       const companyIds = [...new Set(internships.map((i) => i.companyId).filter(Boolean))];
-      const companies = await Company.find({ _id: { $in: companyIds } }).lean();
+      const validCompanyIds = companyIds.filter((id) => mongoose.isValidObjectId(id));
+      const companies = await Company.find({ _id: { $in: validCompanyIds } }).lean();
       const companyNameMap = {};
       for (const c of companies) companyNameMap[c._id.toString()] = c.name;
 
