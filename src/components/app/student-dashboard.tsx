@@ -531,8 +531,8 @@ function RecommendationCard({ rec, index }: { rec: any; index: number }) {
   // Fetch internship details
   useEffect(() => {
     fetch(`/api/internships/${rec.internshipId}`)
-      .then((r) => r.json())
-      .then((d) => setInternship(d.internship))
+      .then((r) => { if (!r.ok) return null; return r.json(); })
+      .then((d) => { if (d) setInternship(d.internship); })
       .catch(() => {});
   }, [rec.internshipId]);
 

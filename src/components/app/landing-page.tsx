@@ -543,6 +543,7 @@ function PopularInternships() {
     queryKey: ["popular-internships"],
     queryFn: async () => {
       const res = await fetch("/api/internships?sort=stipend");
+      if (!res.ok) return { internships: [] };
       return res.json();
     },
   });

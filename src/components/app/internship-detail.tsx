@@ -24,6 +24,7 @@ export function InternshipDetail() {
     queryKey: ["internship", selectedInternshipId],
     queryFn: async () => {
       const res = await fetch(`/api/internships/${selectedInternshipId}`);
+      if (!res.ok) return { internship: null };
       return res.json();
     },
     enabled: !!selectedInternshipId,
