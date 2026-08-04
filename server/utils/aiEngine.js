@@ -36,6 +36,21 @@ function jaccardSimilarity(a, b) {
 }
 
 function computeMatch(student, internship) {
+  student = {
+    skills: student.skills || [],
+    interests: student.interests || [],
+    preferredLocations: student.preferredLocations || [],
+    cgpa: student.cgpa,
+  };
+  internship = {
+    id: internship.id,
+    skills: internship.skills || [],
+    domain: internship.domain || "",
+    location: internship.location || "",
+    workMode: internship.workMode || "onsite",
+    stipend: internship.stipend || 0,
+    duration: internship.duration || 12,
+  };
   const studentSkills = student.skills.map((s) => s.toLowerCase());
   const internshipSkills = internship.skills.map((s) => s.toLowerCase());
   const matchingSkills = internshipSkills.filter((s) => studentSkills.includes(s));
