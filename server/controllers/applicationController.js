@@ -36,7 +36,8 @@ exports.getAll = async (req, res, next) => {
 
     // Populate internship and company info
     const internshipIds = [...new Set(apps.map((a) => a.internshipId))];
-    const internships = await Internship.find({ _id: { $in: internshipIds } }).lean();
+    const validInternshipIds = internshipIds.filter((id) => mongoose.isValidObjectId(id));
+    const internships = await Internship.find({ _id: { $in: validInternshipIds } }).lean();
     const internshipMap = {};
     internships.forEach((i) => { internshipMap[i._id.toString()] = i; });
 
@@ -88,7 +89,11 @@ exports.apply = async (req, res, next) => {
     const existing = await Application.findOne({ internshipId, studentId: req.user.id });
     if (existing) return res.status(409).json({ error: "Already applied" });
 
-    const internship = await Internship.findById(internshipId).lean();
+    let i = mongoose.isValidObjectId(internshipId)
+      ? await Internship.findById(internshipId).lean()
+      : null;
+    if (!i) i = await Internship.collection.findOne({ _id: internshipId });
+    const internship = i;
     if (!internship) return res.status(404).json({ error: "Internship not found" });
 
     const match = computeMatch(
