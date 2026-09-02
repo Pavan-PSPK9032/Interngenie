@@ -26,7 +26,7 @@ declare global {
             cancel_on_tap_outside?: boolean;
             use_fedcm_for_prompt?: boolean;
           }) => void;
-          prompt: (callback?: (notification?: { isNotDisplayed?: () => boolean; isSkippedMoment?: () => boolean; getNotDisplayedReason?: () => string; getSkippedReason?: () => string; getDismissedReason?: () => string; isDismissedMoment?: () => boolean; isClosedMoment?: () => boolean }) => void) => void;
+          prompt: (callback?: () => void) => void;
           renderButton: (element: HTMLElement, config: {
             type: "standard" | "icon";
             theme?: "outline" | "filled_blue" | "filled_blue";
@@ -175,13 +175,8 @@ export function AuthView() {
       setGoogleLoading(false);
     }, 8000);
 
-    window.google.accounts.id.prompt((notification) => {
+    window.google.accounts.id.prompt(() => {
       clearTimeout(timeout);
-      if (!notification) return;
-      const shown = !notification.isNotDisplayed?.() && !notification.isSkippedMoment?.() && !notification.isDismissedMoment?.() && !notification.isClosedMoment?.();
-      if (!shown) {
-        setGoogleLoading(false);
-      }
     });
   };
 
