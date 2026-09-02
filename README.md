@@ -769,11 +769,11 @@ The original spec called for separate React+Vite frontend, Express backend, and 
 
 | Role | Email | Password |
 |------|-------|----------|
-| **Student** | `arjun.sharma@student.edu` | `demo` |
-| **Company** | `hr@flipkart.com` | `demo` |
-| **Admin** | `admin@pm-internship.gov.in` | `demo` |
+| **Student** | `arjun.sharma@student.edu` | `student123` |
+| **Company** | `hr@flipkart.com` | `company123` |
+| **Admin** | `admin@interngenie.app` | `admin123` |
 
-Or use the one-click "Student / Company / Admin" demo login buttons on the auth page.
+Or use the one-click "Student / Company" demo login buttons on the auth page.
 
 ### Test Coverage
 

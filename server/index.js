@@ -53,7 +53,13 @@ const http = require("http");
 const { setupWebSocket } = require("./ws");
 
 const PORT = process.env.PORT || 3001;
-connectDB().then(() => {
+connectDB().then(async () => {
+  try {
+    const { seedDemoIfEmpty } = require("./seedIfEmpty");
+    await seedDemoIfEmpty();
+  } catch (seedErr) {
+    console.error("Seed-if-empty failed (continuing startup):", seedErr.message);
+  }
   const server = http.createServer(app);
   setupWebSocket(server);
   server.listen(PORT, () => console.log(`InternGenie API running on port ${PORT}`));
