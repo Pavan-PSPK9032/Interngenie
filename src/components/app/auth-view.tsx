@@ -22,8 +22,11 @@ declare global {
           initialize: (config: {
             client_id: string;
             callback: (response: { credential: string }) => void;
+            auto_select?: boolean;
+            cancel_on_tap_outside?: boolean;
+            use_fedcm_for_prompt?: boolean;
           }) => void;
-          prompt: (callback?: (notification: { isNotDisplayed: () => boolean; isSkippedMoment: () => boolean }) => void) => void;
+          prompt: (callback?: (notification?: { isNotDisplayed?: () => boolean; isSkippedMoment?: () => boolean; getNotDisplayedReason?: () => string; getSkippedReason?: () => string; getDismissedReason?: () => string; isDismissedMoment?: () => boolean; isClosedMoment?: () => boolean }) => void) => void;
           renderButton: (element: HTMLElement, config: {
             type: "standard" | "icon";
             theme?: "outline" | "filled_blue" | "filled_blue";
@@ -83,7 +86,7 @@ export function AuthView() {
   const features = [
     { icon: Zap, text: "AI-powered internship matching" },
     { icon: Target, text: "Personalized career recommendations" },
-    { icon: Users, text: "1.2M+ students & 12,500+ companies" },
+    { icon: Users, text: "Resume analysis & skill gap detection" },
   ];
 
   const handleCredentialResponse = useCallback(
@@ -155,6 +158,7 @@ export function AuthView() {
         callback: handleCredentialResponse,
         auto_select: false,
         cancel_on_tap_outside: true,
+        use_fedcm_for_prompt: true,
       });
       googleInitialized.current = true;
       setGoogleReady(true);
@@ -174,7 +178,8 @@ export function AuthView() {
     window.google.accounts.id.prompt((notification) => {
       clearTimeout(timeout);
       if (!notification) return;
-      if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+      const shown = !notification.isNotDisplayed?.() && !notification.isSkippedMoment?.() && !notification.isDismissedMoment?.() && !notification.isClosedMoment?.();
+      if (!shown) {
         setGoogleLoading(false);
       }
     });
@@ -309,9 +314,9 @@ export function AuthView() {
             className="mt-12 grid grid-cols-3 gap-4"
           >
             {[
-              { value: "1.2M+", label: "Students" },
-              { value: "12.5K+", label: "Companies" },
-              { value: "94%", label: "Match Rate" },
+              { value: "AI", label: "Skill Matching" },
+              { value: "ATS", label: "Resume Analysis" },
+              { value: "Gap", label: "Skill Detection" },
             ].map((s) => (
               <div key={s.label} className="glass rounded-2xl border-white/10 p-4 shadow-premium animate-float-slow">
                 <p className="text-2xl font-bold gradient-text">{s.value}</p>

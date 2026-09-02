@@ -66,7 +66,7 @@ async function generateAIReply(message) {
   try {
     const ZAI = (await import("z-ai-web-dev-sdk")).default;
     const zai = await ZAI.create();
-    const SYSTEM_PROMPT = `You are InternGenie, the AI career assistant for the PM Internship Scheme platform. Be warm, encouraging, and concise.`;
+    const SYSTEM_PROMPT = `You are InternGenie, the AI career assistant for an AI-powered internship discovery platform. Be warm, encouraging, and concise.`;
     const completion = await zai.chat.completions.create({
       messages: [
         { role: "system", content: SYSTEM_PROMPT },

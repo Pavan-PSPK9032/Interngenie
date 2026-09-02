@@ -128,7 +128,7 @@ export function AdminDashboard() {
             Platform Overview
           </h1>
           <p className="text-white/90 mt-2">
-            Real-time insights into the PM Internship Scheme ecosystem
+            Real-time insights into the InternGenie platform
           </p>
           <div className="flex flex-wrap gap-2 mt-4">
             <Button

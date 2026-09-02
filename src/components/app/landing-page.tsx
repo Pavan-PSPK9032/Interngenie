@@ -3,8 +3,9 @@ import { motion, useScroll, useTransform } from "framer-motion";
 import { useRef, useState, useEffect } from "react";
 import {
   Sparkles, Search, ArrowRight, Users, Building2, Briefcase,
-  CheckCircle2, TrendingUp, Star, ChevronDown, Quote, Zap,
-  Brain, Target, Award,
+  CheckCircle2, TrendingUp, Star, ChevronDown, Zap,
+  Brain, Target, Award, FileSearch, Compass, FileText,
+  User as UserIcon, Upload,
 } from "lucide-react";
 import { useApp } from "@/lib/store";
 import { Button } from "@/components/ui/button";
@@ -17,8 +18,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Card, CardContent } from "@/components/ui/card";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { TESTIMONIALS, FAQS, STATS } from "@/lib/constants";
+import { TESTIMONIALS, FAQS } from "@/lib/constants";
 import { useQuery } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
 
@@ -72,7 +72,7 @@ export function LandingPage() {
           >
             <Sparkles className="w-3.5 h-3.5 text-primary" />
             <span className="text-xs font-medium">
-              AI-Powered · Government of India Initiative
+              AI-powered · Personalized · Student-focused
             </span>
             <Badge className="gradient-emerald text-white text-[10px]">NEW</Badge>
           </motion.div>
@@ -83,10 +83,9 @@ export function LandingPage() {
             transition={{ duration: 0.6, delay: 0.1 }}
             className="text-4xl sm:text-5xl md:text-7xl font-bold tracking-tight leading-[1.05]"
           >
-            Find your{" "}
-            <span className="gradient-text">dream internship</span>
+            Find the <span className="gradient-text">internship</span>
             <br />
-            with AI-powered precision
+            that fits you.
           </motion.h1>
 
           <motion.p
@@ -95,9 +94,9 @@ export function LandingPage() {
             transition={{ duration: 0.6, delay: 0.2 }}
             className="mt-6 text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed"
           >
-            Connect with 12,500+ companies across India. Our hybrid AI engine
-            matches your skills, interests, and preferences to internships with
-            explainable match scores — so you always know <em className="text-foreground/80 not-italic font-medium">why</em>.
+            InternGenie uses AI to understand your skills, interests, and career
+            goals, then helps you discover internships that match your profile —
+            with explainable match scores so you always know <em className="text-foreground/80 not-italic font-medium">why</em>.
           </motion.p>
 
           {/* Search bar */}
@@ -152,19 +151,19 @@ export function LandingPage() {
             className="mt-8 flex flex-wrap items-center justify-center gap-3"
           >
             <Button
-              onClick={() => navigate("auth")}
+              onClick={() => navigate("internships")}
               className="gradient-emerald text-white shadow-glow rounded-full h-12 px-7 gap-2"
             >
-              Get Started — It's Free
+              Find My Internship
               <ArrowRight className="w-4 h-4" />
             </Button>
             <Button
-              onClick={() => navigate("internships")}
+              onClick={() => navigate("ats-checker")}
               variant="outline"
               className="rounded-full h-12 px-7 gap-2 glass"
             >
-              <Briefcase className="w-4 h-4" />
-              Browse Internships
+              <FileSearch className="w-4 h-4" />
+              Analyze My Resume
             </Button>
           </motion.div>
         </motion.div>
@@ -224,37 +223,10 @@ export function LandingPage() {
         </motion.div>
       </section>
 
-      {/* ───────────── STATS ───────────── */}
+      {/* ───────────── PLATFORM STATS ───────────── */}
       <section className="py-16 md:py-20 border-y border-border/40 bg-card/30">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
-            {STATS.map((stat, i) => {
-              const icon =
-                stat.icon === "users" ? Users :
-                stat.icon === "building" ? Building2 :
-                stat.icon === "briefcase" ? Briefcase :
-                CheckCircle2;
-              return (
-                <motion.div
-                  key={i}
-                  initial={{ opacity: 0, y: 30 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: i * 0.1 }}
-                  className="text-center"
-                >
-                  <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl gradient-emerald mb-3 shadow-glow">
-                    {(() => {
-                      const Icon = icon;
-                      return <Icon className="w-6 h-6 text-white" />;
-                    })()}
-                  </div>
-                  <p className="text-3xl md:text-4xl font-bold gradient-text">{stat.value}</p>
-                  <p className="text-sm text-muted-foreground mt-1">{stat.label}</p>
-                </motion.div>
-              );
-            })}
-          </div>
+          <LiveStats />
         </div>
       </section>
 
@@ -352,52 +324,48 @@ export function LandingPage() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-2xl mx-auto mb-12">
             <Badge variant="secondary" className="mb-4">
-              <Star className="w-3 h-3 mr-1 fill-amber-500 text-amber-500" />
-              Success Stories
+              <Zap className="w-3 h-3 mr-1 text-primary" />
+              Why Students Use InternGenie
             </Badge>
             <h2 className="text-3xl md:text-4xl font-bold tracking-tight">
-              Loved by students across India
+              Built around your career journey
             </h2>
             <p className="mt-4 text-muted-foreground">
-              Real stories from interns who found their dream roles through InternGenie.
+              From understanding your profile to helping you apply and grow — everything
+              InternGenie does is centered on your goals.
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-            {TESTIMONIALS.map((t, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.08 }}
-              >
-                <Card className="h-full">
-                  <CardContent className="p-6 flex flex-col h-full">
-                    <Quote className="w-8 h-8 text-primary/30 mb-3" />
-                    <p className="text-sm leading-relaxed flex-1">
-                      "{t.quote}"
-                    </p>
-                    <div className="flex items-center gap-3 mt-4 pt-4 border-t border-border/40">
-                      <Avatar className="w-10 h-10 gradient-emerald">
-                        <AvatarFallback className="text-white text-xs">
-                          {t.name.split(" ").map((n) => n[0]).join("")}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <p className="text-sm font-semibold">{t.name}</p>
-                        <p className="text-xs text-muted-foreground">{t.role}</p>
+            {TESTIMONIALS.map((t, i) => {
+              const Icon =
+                t.icon === "target" ? Target :
+                t.icon === "file-text" ? FileText :
+                t.icon === "trending-up" ? TrendingUp :
+                t.icon === "compass" ? Compass :
+                CheckCircle2;
+              return (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, y: 30 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: i * 0.08 }}
+                >
+                  <Card className="h-full">
+                    <CardContent className="p-6 flex flex-col h-full items-start">
+                      <div className="w-11 h-11 rounded-xl gradient-emerald flex items-center justify-center mb-4 shadow-glow">
+                        <Icon className="w-5 h-5 text-white" />
                       </div>
-                      <div className="ml-auto flex">
-                        {Array.from({ length: t.rating }).map((_, idx) => (
-                          <Star key={idx} className="w-3.5 h-3.5 fill-amber-500 text-amber-500" />
-                        ))}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))}
+                      <p className="font-semibold text-lg">{t.title}</p>
+                      <p className="text-sm text-muted-foreground mt-2 leading-relaxed">
+                        {t.description}
+                      </p>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              );
+            })}
           </div>
         </div>
       </section>
@@ -411,7 +379,7 @@ export function LandingPage() {
               Frequently Asked Questions
             </h2>
             <p className="mt-4 text-muted-foreground">
-              Everything you need to know about the PM Internship Scheme platform.
+              Everything you need to know about InternGenie.
             </p>
           </div>
 
@@ -434,6 +402,54 @@ export function LandingPage() {
         </div>
       </section>
 
+      {/* ───────────── HOW IT WORKS ───────────── */}
+      <section className="py-16 md:py-24 border-y border-border/40 bg-card/30">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="text-center max-w-2xl mx-auto mb-12">
+            <Badge variant="secondary" className="mb-4">
+              <Zap className="w-3 h-3 mr-1 text-primary" />
+              How InternGenie Works
+            </Badge>
+            <h2 className="text-3xl md:text-4xl font-bold tracking-tight">
+              From your profile to the right internship
+            </h2>
+            <p className="mt-4 text-muted-foreground">
+              A simple, guided journey powered by AI at every step.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {[
+              { step: "01", icon: UserIcon, title: "Create Profile", desc: "Set up your student profile with your college, degree, and interests." },
+              { step: "02", icon: Upload, title: "Upload Resume", desc: "AI extracts your skills, education, projects, and experience automatically." },
+              { step: "03", icon: Brain, title: "AI Matching", desc: "Get explainable match scores pairing your profile to internships." },
+              { step: "04", icon: Target, title: "Skill Gaps & Apply", desc: "Understand what you're missing, then apply and track your application." },
+            ].map((s, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.1 }}
+              >
+                <Card className="h-full group hover:border-primary/30 transition-colors">
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="w-11 h-11 rounded-xl gradient-emerald flex items-center justify-center shadow-glow">
+                        <s.icon className="w-5 h-5 text-white" />
+                      </div>
+                      <span className="text-3xl font-bold text-foreground/10">{s.step}</span>
+                    </div>
+                    <p className="font-semibold">{s.title}</p>
+                    <p className="text-sm text-muted-foreground mt-1.5 leading-relaxed">{s.desc}</p>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* ───────────── CTA ───────────── */}
       <section className="py-16 md:py-24">
         <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
@@ -442,11 +458,11 @@ export function LandingPage() {
             <div className="relative">
               <Sparkles className="w-12 h-12 text-white mx-auto mb-4" />
               <h2 className="text-3xl md:text-5xl font-bold text-white tracking-tight">
-                Ready to find your dream internship?
+                Find the internship that fits you.
               </h2>
               <p className="mt-4 text-white/90 text-lg max-w-2xl mx-auto">
-                Join 1.2 million+ students who trust InternGenie to launch their careers.
-                Sign up free in under 2 minutes.
+                Create a free profile, upload your resume, and let AI match you to
+                internships, understand your skill gaps, and guide your career.
               </p>
               <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
                 <Button
@@ -474,6 +490,53 @@ export function LandingPage() {
   );
 }
 
+// ─── Live Stats ─────────────────────────────────────────────────────
+function LiveStats() {
+  const { data } = useQuery({
+    queryKey: ["platform-stats"],
+    queryFn: async () => {
+      const res = await fetch("/api/stats");
+      if (!res.ok) return null;
+      return res.json();
+    },
+    retry: 0,
+  });
+
+  const totals = data?.totals || {};
+  const hasRealData = (totals.totalInternships ?? 0) > 0;
+
+  const labels = [
+    { Icon: Briefcase, value: totals.totalInternships ?? 0, title: "Open Internships", sub: "Live on the platform" },
+    { Icon: FileText, value: totals.totalResumes ?? 0, title: "Resumes Analyzed", sub: "By our AI" },
+    { Icon: Users, value: totals.totalStudents ?? 0, title: "Registered Students", sub: "Building careers" },
+    { Icon: Building2, value: totals.totalCompanies ?? 0, title: "Companies", sub: "Posting opportunities" },
+  ];
+
+  return (
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
+      {labels.map((l, i) => (
+        <motion.div
+          key={i}
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ delay: i * 0.1 }}
+          className="text-center"
+        >
+          <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl gradient-emerald mb-3 shadow-glow">
+            <l.Icon className="w-6 h-6 text-white" />
+          </div>
+          <p className="text-3xl md:text-4xl font-bold gradient-text">
+            {hasRealData ? l.value.toLocaleString("en-IN") : "—"}
+          </p>
+          <p className="text-sm text-muted-foreground mt-1">{l.title}</p>
+          <p className="text-xs text-muted-foreground/70">{l.sub}</p>
+        </motion.div>
+      ))}
+    </div>
+  );
+}
+
 // ─── Featured Companies ─────────────────────────────────────────────
 function FeaturedCompanies() {
   const { data } = useQuery({
@@ -492,14 +555,14 @@ function FeaturedCompanies() {
         <div className="text-center max-w-2xl mx-auto mb-12">
           <Badge variant="secondary" className="mb-4">
             <Building2 className="w-3 h-3 mr-1" />
-            Trusted Partners
+            Featured Companies
           </Badge>
           <h2 className="text-3xl md:text-4xl font-bold tracking-tight">
-            India's leading companies hire here
+            Internships at companies across India
           </h2>
           <p className="mt-4 text-muted-foreground">
-            From Fortune 500 enterprises to fast-growing startups —
-            find internships at the companies shaping India's future.
+            Explore open internship roles posted by companies on the platform,
+            from large enterprises to fast-growing startups.
           </p>
         </div>
 

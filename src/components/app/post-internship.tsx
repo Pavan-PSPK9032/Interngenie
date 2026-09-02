@@ -103,7 +103,7 @@ export function PostInternship() {
       <div className="mb-6">
         <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Post a New Internship</h1>
         <p className="text-sm text-muted-foreground mt-1">
-          Reach 1.2M+ talented students with AI-powered matching
+          Reach talented students with AI-powered matching and skill scoring
         </p>
       </div>
 

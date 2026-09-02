@@ -18,14 +18,16 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "InternGenie — AI-Powered Internship Recommendations | PM Internship Scheme",
+  metadataBase: new URL("https://interngenie.vercel.app"),
+  title: "InternGenie — AI-Powered Internship Discovery Platform",
   description:
-    "Find your dream internship with AI-powered recommendations. The PM Internship Scheme platform connects 1.2M+ students with 12,500+ companies across India.",
+    "InternGenie uses AI to understand your skills, interests, and career goals, then helps you discover internships that match your profile. Analyze your resume, identify skill gaps, and plan your career.",
   keywords: [
-    "PM Internship Scheme",
     "AI internship recommendation",
     "India internships",
     "student internships",
+    "resume analysis",
+    "skill gap analysis",
     "career guidance",
   ],
   authors: [{ name: "InternGenie" }],
@@ -40,16 +42,31 @@ export const metadata: Metadata = {
     apple: "/icon.svg",
   },
   openGraph: {
-    title: "InternGenie — AI-Powered Internship Recommendations",
+    title: "InternGenie — AI-Powered Internship Discovery Platform",
     description:
-      "Find your dream internship with AI-powered recommendations. The PM Internship Scheme platform.",
+      "Find the internship that fits you. InternGenie uses AI to match your skills and interests to internships, analyze your resume, and guide your career.",
     siteName: "InternGenie",
     type: "website",
+    url: "https://interngenie.vercel.app",
+    locale: "en_IN",
+    images: [
+      {
+        url: "/og-image.svg",
+        width: 1200,
+        height: 630,
+        alt: "InternGenie — AI-Powered Internship Discovery Platform",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "InternGenie",
-    description: "AI-Powered Internship Recommendations",
+    title: "InternGenie — AI-Powered Internship Discovery Platform",
+    description: "Find the internship that fits you.",
+    images: ["/og-image.svg"],
+  },
+  robots: {
+    index: true,
+    follow: true,
   },
 };
 

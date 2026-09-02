@@ -1,7 +1,7 @@
 {
   "name": "InternGenie — AI Internship Recommendations",
   "short_name": "InternGenie",
-  "description": "AI-powered internship recommendations for the PM Internship Scheme",
+  "description": "AI-powered internship discovery and career guidance platform",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

@@ -29,6 +29,7 @@ app.get("/health", (req, res) => res.json({ status: "ok", uptime: process.uptime
 app.use("/api/auth", rateLimiter({ windowMs: 60000, max: 10 }), require("./routes/auth"));
 app.use("/api/internships", require("./routes/internships"));
 app.use("/api/companies", require("./routes/companies"));
+app.use("/api/stats", require("./routes/stats"));
 app.use("/api/admin", auth, requireRole("ADMIN"), require("./routes/admin"));
 app.use("/api/applications", auth, require("./routes/applications"));
 app.use("/api/notifications", auth, require("./routes/notifications"));

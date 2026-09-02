@@ -106,7 +106,7 @@ export function Navbar() {
                 </div>
                 <div className="flex flex-col leading-none hidden sm:flex">
                   <span className="font-bold text-lg gradient-text tracking-tight">InternGenie</span>
-                  <span className="text-[10px] text-muted-foreground">PM Internship Scheme</span>
+                  <span className="text-[10px] text-muted-foreground">AI internship discovery</span>
                 </div>
               </button>
 

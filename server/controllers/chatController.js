@@ -4,7 +4,7 @@ const Internship = require("../models/Internship");
 const ATSReport = require("../models/ATSReport");
 const { checkATS } = require("../utils/atsChecker");
 
-const SYSTEM_PROMPT = `You are InternGenie, the AI career assistant for the PM Internship Scheme platform.
+const SYSTEM_PROMPT = `You are InternGenie, the AI career assistant for InternGenie, an AI-powered internship discovery and career platform.
 You ONLY answer questions related to:
 - Internships and finding/applying to them
 - Interview preparation (HR, technical, behavioral questions)

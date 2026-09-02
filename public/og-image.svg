@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0b1030"/>
+      <stop offset="100%" stop-color="#0f172a"/>
+    </linearGradient>
+    <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#10b981"/>
+      <stop offset="100%" stop-color="#f59e0b"/>
+    </linearGradient>
+    <linearGradient id="txt" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#6366f1"/>
+      <stop offset="100%" stop-color="#06b6d4"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <circle cx="150" cy="100" r="220" fill="#6366f1" opacity="0.15"/>
+  <circle cx="1050" cy="520" r="260" fill="#06b6d4" opacity="0.12"/>
+  <g transform="translate(70,70)">
+    <rect width="90" height="90" rx="22" fill="url(#g)"/>
+    <path d="M 28 56 L 45 25 L 62 56 L 53 56 L 45 40 L 37 56 Z" fill="white"/>
+    <circle cx="45" cy="45" r="14" fill="white" opacity="0.3"/>
+    <circle cx="45" cy="45" r="8" fill="white"/>
+  </g>
+  <text x="180" y="150" font-family="Arial, sans-serif" font-size="64" font-weight="800" fill="#ffffff">InternGenie</text>
+  <text x="180" y="200" font-family="Arial, sans-serif" font-size="30" fill="#cbd5e1">AI-Powered Internship Discovery &amp; Career Platform</text>
+  <text x="180" y="260" font-family="Arial, sans-serif" font-size="26" font-weight="600" fill="url(#txt)">Find the internship that fits you.</text>
+  <text x="180" y="330" font-family="Arial, sans-serif" font-size="20" fill="#94a3b8">Analyze your resume · Discover matching internships · Close skill gaps · Plan your career</text>
+</svg>

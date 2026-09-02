@@ -47,28 +47,28 @@ export const ALL_SKILLS = Object.values(SKILL_TAXONOMY).flat();
 export const SKILL_CATEGORIES = Object.keys(SKILL_TAXONOMY);
 
 export const TESTIMONIALS = [
-  { name: "Sneha Patel", role: "Data Science Intern at Flipkart", image: "", quote: "The AI recommendation engine matched me with 12 internships in my dream domain. Got an offer from Flipkart within 2 weeks of applying!", rating: 5 },
-  { name: "Rohit Kumar", role: "Full Stack Intern at Razorpay", image: "", quote: "The skill gap analysis was a game-changer. I learned exactly what I needed to crack interviews at top companies.", rating: 5 },
-  { name: "Ananya Iyer", role: "UI/UX Intern at Freshworks", image: "", quote: "The chatbot guided me through every step — from resume building to interview tips. Felt like having a personal career coach.", rating: 5 },
-  { name: "Vikram Singh", role: "DevOps Intern at Infosys", image: "", quote: "The match percentage feature gave me confidence to apply. The application tracking kept me informed throughout.", rating: 5 },
-  { name: "Pooja Nair", role: "ML Research Intern at TCS", image: "", quote: "The resume parser automatically extracted all my skills. Saved hours of manual entry. Brilliant platform!", rating: 5 },
-  { name: "Karthik Reddy", role: "Product Intern at CRED", image: "", quote: "From application to certificate, the entire journey was seamless. Got my completion certificate in 12 weeks.", rating: 5 },
+  { icon: "target", title: "Personalized recommendations", description: "Every internship is scored against your profile with a transparent, explainable AI match." },
+  { icon: "file-text", title: "AI resume analysis", description: "Upload your resume and get a score, extracted skills, and actionable improvements." },
+  { icon: "trending-up", title: "Skill gap detection", description: "See exactly which skills you're missing for each role and how to learn them." },
+  { icon: "compass", title: "Career guidance", description: "Get interview prep, learning paths, and guidance tailored to your goals." },
+  { icon: "clipboard-check", title: "Application tracking", description: "Follow every application from submitted to interview to outcome." },
 ];
 
 export const FAQS = [
-  { q: "What is the PM Internship Scheme?", a: "The PM Internship Scheme is a Government of India initiative that provides internship opportunities to youth across India, connecting them with top companies for hands-on industry experience and skill development." },
-  { q: "How does the AI recommendation engine work?", a: "Our hybrid engine combines content-based filtering (skill cosine similarity), collaborative filtering (Jaccard overlap), location and domain preferences, and stipend/duration heuristics to compute a 0-100 match score for every internship." },
-  { q: "Can I apply for internships without uploading a resume?", a: "Yes, but we strongly recommend uploading your resume. Our AI parser automatically extracts your skills, education, projects, and experience." },
-  { q: "Is the platform free for students?", a: "Yes, the platform is completely free for students under the PM Internship Scheme." },
-  { q: "How long are the internships?", a: "Internships range from 8 to 24 weeks. Most are 12-16 weeks. You can filter by duration in the search page." },
-  { q: "Will I get a certificate after completion?", a: "Yes, every completed internship comes with a verified digital certificate that includes your name, the internship title, the company, and the skills you demonstrated." },
-  { q: "Can companies hire interns full-time after the internship?", a: "Yes, many companies offer Pre-Placement Offers (PPOs) to top-performing interns." },
-  { q: "Does the platform support mobile devices?", a: "Yes, the platform is a Progressive Web App (PWA) — installable on Android and iOS." },
+  { q: "What is InternGenie?", a: "InternGenie is an AI-powered platform that helps students discover internships that match their skills and interests, analyze and improve their resumes, and plan their careers step by step." },
+  { q: "How does AI internship matching work?", a: "We analyze your resume to extract your skills, education, and experience, then compare your profile against available internships using a transparent weighted score that covers skill similarity, interests, location, and experience." },
+  { q: "How is my match score calculated?", a: "Your match score is an AI-generated compatibility estimate. It combines skill similarity, career interests, education, location preference, and experience into a 0-100 score. It is a helpful signal, not a guarantee of success." },
+  { q: "Can I upload my resume?", a: "Yes. Upload a PDF resume and our parser automatically extracts your skills, education, projects, experience, and certifications to build your profile and power your recommendations." },
+  { q: "Can InternGenie improve my resume?", a: "Yes. Our resume analyzer gives you a score with strengths, weaknesses, and specific suggestions, plus an AI resume builder to rewrite and enhance sections." },
+  { q: "How does skill gap analysis work?", a: "For each internship, we compare your skills against the required skills and show you exactly which ones you're missing, along with learning recommendations." },
+  { q: "Can I track my applications?", a: "Yes. Your dashboard shows the status of every application, from applied to under review to interview and beyond." },
+  { q: "Is InternGenie a government website?", a: "No. InternGenie is an independent AI-powered career platform. It is not an official government website and has no affiliation with the Government of India." },
+  { q: "How is my data protected?", a: "Your data is stored securely, passwords are hashed, and private profile information is never exposed publicly. See our privacy policy for details." },
 ];
 
 export const STATS = [
-  { label: "Active Students", value: "1,250,000+", icon: "users" },
-  { label: "Partner Companies", value: "12,500+", icon: "building" },
-  { label: "Open Internships", value: "45,000+", icon: "briefcase" },
-  { label: "Successful Placements", value: "320,000+", icon: "check-circle" },
+  { label: "AI Internship Matching", value: "Hybrid", icon: "sparkles" },
+  { label: "Resume Analysis", value: "AI-Powered", icon: "file-text" },
+  { label: "Skill Gap Detection", value: "Built-in", icon: "trending-up" },
+  { label: "Career Guidance", value: "Always Free", icon: "compass" },
 ];

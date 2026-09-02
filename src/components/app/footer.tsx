@@ -4,6 +4,12 @@ import { useApp } from "@/lib/store";
 
 export function Footer() {
   const { navigate, setChatbotOpen } = useApp();
+  const socials = [
+    { Icon: Github, label: "GitHub", href: "https://github.com/Pavan-PSPK9032/Interngenie" },
+    { Icon: Twitter, label: "Twitter", href: "#" },
+    { Icon: Linkedin, label: "LinkedIn", href: "#" },
+    { Icon: Mail, label: "Email", href: "mailto:support@interngenie.app" },
+  ];
   return (
     <footer className="relative mt-12 overflow-hidden">
       <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-indigo-500/40 to-transparent" />
@@ -21,76 +27,51 @@ export function Footer() {
               </div>
               <div>
                 <p className="font-bold text-lg gradient-text tracking-tight">InternGenie</p>
-                <p className="text-xs text-muted-foreground">PM Internship Scheme</p>
+                <p className="text-xs text-muted-foreground">AI internship discovery</p>
               </div>
             </div>
             <p className="text-sm text-muted-foreground leading-relaxed max-w-md">
-              AI-powered internship recommendations connecting 1.2M+ Indian students
-              with 12,500+ companies. Built under the PM Internship Scheme to empower
-              youth with industry-ready skills and opportunities.
+              An AI-powered platform helping students discover internships, understand skill
+              gaps, improve resumes, and plan their careers.
             </p>
             <div className="flex items-center gap-3 mt-4">
-              {[Github, Twitter, Linkedin, Mail].map((Icon, i) => (
-                <button
-                  key={i}
-                  className="w-9 h-9 rounded-xl bg-white/[0.04] border border-white/[0.06] hover:bg-white/[0.08] hover:border-white/10 hover:text-primary hover:-translate-y-0.5 transition-all shadow-glow"
-                  aria-label="social"
+              {socials.map(({ Icon, label, href }) => (
+                <a
+                  key={label}
+                  href={href}
+                  target={href.startsWith("http") ? "_blank" : undefined}
+                  rel={href.startsWith("http") ? "noopener noreferrer" : undefined}
+                  className="w-9 h-9 rounded-xl bg-white/[0.04] border border-white/[0.06] hover:bg-white/[0.08] hover:border-white/10 hover:text-primary hover:-translate-y-0.5 transition-all shadow-glow flex items-center justify-center"
+                  aria-label={label}
                 >
-                  <Icon className="w-4 h-4 mx-auto" />
-                </button>
+                  <Icon className="w-4 h-4" />
+                </a>
               ))}
             </div>
           </div>
 
-          {/* For Students */}
+          {/* Platform */}
           <div>
-            <p className="font-semibold text-sm mb-3">For Students</p>
+            <p className="font-semibold text-sm mb-3">Platform</p>
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li>
                 <button onClick={() => navigate("internships")} className="hover:text-primary transition-colors">
-                  Browse Internships
+                  Find Internships
                 </button>
               </li>
               <li>
-                <button onClick={() => navigate("auth")} className="hover:text-primary transition-colors">
-                  Sign Up
+                <button onClick={() => navigate("ats-checker")} className="hover:text-primary transition-colors">
+                  Resume Analyzer
                 </button>
               </li>
               <li>
-                <button onClick={() => navigate("home")} className="hover:text-primary transition-colors">
-                  AI Resume Builder
+                <button onClick={() => navigate("resume-builder")} className="hover:text-primary transition-colors">
+                  Resume Builder
                 </button>
               </li>
               <li>
-                <button onClick={() => navigate("home")} className="hover:text-primary transition-colors">
-                  Career Guidance
-                </button>
-              </li>
-            </ul>
-          </div>
-
-          {/* For Companies */}
-          <div>
-            <p className="font-semibold text-sm mb-3">For Companies</p>
-            <ul className="space-y-2 text-sm text-muted-foreground">
-              <li>
-                <button onClick={() => navigate("auth")} className="hover:text-primary transition-colors">
-                  Post Internship
-                </button>
-              </li>
-              <li>
-                <button onClick={() => navigate("auth")} className="hover:text-primary transition-colors">
-                  Company Login
-                </button>
-              </li>
-              <li>
-                <button onClick={() => navigate("home")} className="hover:text-primary transition-colors">
-                  Pricing
-                </button>
-              </li>
-              <li>
-                <button onClick={() => navigate("home")} className="hover:text-primary transition-colors">
-                  Success Stories
+                <button onClick={() => setChatbotOpen(true)} className="hover:text-primary transition-colors flex items-center gap-1.5">
+                  <Bot className="w-3.5 h-3.5 text-cyan-400" /> AI Career Assistant
                 </button>
               </li>
             </ul>
@@ -100,20 +81,31 @@ export function Footer() {
           <div>
             <p className="font-semibold text-sm mb-3">Resources</p>
             <ul className="space-y-2 text-sm text-muted-foreground">
-              <li><button onClick={() => navigate("home")} className="hover:text-primary transition-colors">Help Center</button></li>
+              <li><button onClick={() => navigate("interview-prep")} className="hover:text-primary transition-colors">Interview Prep</button></li>
+              <li><button onClick={() => navigate("home")} className="hover:text-primary transition-colors">Career Guides</button></li>
+              <li><button onClick={() => navigate("home")} className="hover:text-primary transition-colors">Skill Development</button></li>
+              <li><button onClick={() => navigate("home")} className="hover:text-primary transition-colors">FAQs</button></li>
+            </ul>
+          </div>
+
+          {/* Company */}
+          <div>
+            <p className="font-semibold text-sm mb-3">Company</p>
+            <ul className="space-y-2 text-sm text-muted-foreground">
+              <li><button onClick={() => navigate("home")} className="hover:text-primary transition-colors">About</button></li>
+              <li><button onClick={() => navigate("home")} className="hover:text-primary transition-colors">Contact</button></li>
               <li><button onClick={() => navigate("home")} className="hover:text-primary transition-colors">Privacy Policy</button></li>
               <li><button onClick={() => navigate("home")} className="hover:text-primary transition-colors">Terms of Service</button></li>
-              <li><button onClick={() => setChatbotOpen(true)} className="hover:text-primary transition-colors flex items-center gap-1.5"><Bot className="w-3.5 h-3.5 text-cyan-400" /> AI Assistant</button></li>
             </ul>
           </div>
         </div>
 
         <div className="border-t border-white/[0.06] mt-10 pt-6 flex flex-col sm:flex-row items-center justify-between gap-3">
           <p className="text-xs text-muted-foreground">
-            © 2026 InternGenie. Government of India — PM Internship Scheme.
+            © {new Date().getFullYear()} InternGenie. All rights reserved.
           </p>
           <p className="text-xs text-muted-foreground flex items-center gap-1.5">
-            Made with <Heart className="w-3 h-3 fill-red-500 text-red-500" /> for Indian youth
+            Made with <Heart className="w-3 h-3 fill-red-500 text-red-500" /> for students
           </p>
         </div>
       </div>
