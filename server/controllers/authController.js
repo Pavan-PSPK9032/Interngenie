@@ -207,6 +207,13 @@ exports.register = async (req, res, next) => {
       return res.status(400).json({ error: "Missing required fields" });
     }
 
+    // SECURITY: Never trust a client-supplied role for privileged access.
+    // ADMIN accounts may only be created via a protected server-side path
+    // (seeding or an admin-owned action), never through public self-registration.
+    if (role !== "STUDENT" && role !== "COMPANY") {
+      return res.status(400).json({ error: "Invalid role" });
+    }
+
     const existing = await User.findOne({ email });
     if (existing) return res.status(409).json({ error: "Email already registered" });
 

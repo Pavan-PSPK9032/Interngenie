@@ -30,16 +30,17 @@ export function CompanySchedule() {
   });
 
   const { data: intData } = useQuery({
-    queryKey: ["all-internships"],
+    queryKey: ["my-internships"],
     queryFn: async () => {
-      const res = await fetch("/api/internships");
+      const res = await fetch("/api/internships/mine", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       return res.json();
     },
+    enabled: !!user,
   });
 
-  const myInternships = (intData?.internships || []).filter(
-    (i: any) => i.companyId === user?.companyId
-  );
+  const myInternships = intData?.internships || [];
 
   const applications = (appData?.applications || []).filter(
     (a: any) => a.status === "INTERVIEW"

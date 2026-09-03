@@ -168,12 +168,17 @@ exports.update = async (req, res, next) => {
         const company = internship && internship.companyId && mongoose.isValidObjectId(internship.companyId) ? await Company.findById(internship.companyId).lean() : null;
         const { default: User } = require("../models/User");
         const student = await User.findById(app.studentId).lean();
-        const certId = "CERT-" + Math.random().toString(36).slice(2, 10).toUpperCase();
+        const credId = "CERT-" + Math.random().toString(36).slice(2, 10).toUpperCase();
         await Certificate.create({
-          userId: app.studentId, internshipId: app.internshipId,
-          internshipTitle: internship ? internship.title : "", companyName: company ? company.name : "",
-          studentName: student ? student.name : "", certificateId: certId, skills: internship ? internship.skills || [] : [],
-        });
+          userId: app.studentId,
+          name: internship ? internship.title : "Internship Completion",
+          organization: company ? company.name : "InternGenie",
+          category: "Other",
+          issueDate: new Date(),
+          credentialId: credId,
+          description: internship ? `Internship completion certificate for ${internship.title}` : "Internship completion certificate",
+          skills: internship ? internship.skills || [] : [],
+        }).catch(() => {});
       }
     }
 

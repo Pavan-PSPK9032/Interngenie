@@ -81,7 +81,7 @@ export function BottomNav() {
           { icon: Home, label: "Home", view: "home" as const },
           { icon: LayoutDashboard, label: "Stats", view: "admin-dashboard" as const },
           { icon: Briefcase, label: "Companies", view: "admin-companies" as const },
-          { icon: User, label: "Users", view: "admin-internships" as const },
+          { icon: User, label: "Users", view: "admin-users" as const },
         ];
 
   return (

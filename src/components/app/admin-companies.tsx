@@ -16,9 +16,11 @@ export function AdminCompanies() {
   const queryClient = useQueryClient();
 
   const { data, isLoading } = useQuery({
-    queryKey: ["companies"],
+    queryKey: ["admin-companies"],
     queryFn: async () => {
-      const res = await fetch("/api/companies");
+      const res = await fetch("/api/admin/companies?limit=100", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       return res.json();
     },
   });
@@ -126,14 +128,14 @@ export function AdminCompanies() {
                         ) : (
                           <Badge variant="outline" className="text-[10px]">Unverified</Badge>
                         )}
-                        {c.approved ? (
+                        {c.status === "SUSPENDED" ? (
+                          <Badge className="bg-red-500/10 text-red-700 dark:text-red-400 text-[10px]">Suspended</Badge>
+                        ) : c.status === "PENDING" || !c.approved ? (
+                          <Badge className="bg-amber-500/10 text-amber-700 dark:text-amber-400 text-[10px]">Pending</Badge>
+                        ) : (
                           <Badge className="bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 text-[10px] gap-0.5">
                             <CheckCircle2 className="w-2.5 h-2.5" />
                             Approved
-                          </Badge>
-                        ) : (
-                          <Badge className="bg-amber-500/10 text-amber-700 dark:text-amber-400 text-[10px]">
-                            Pending
                           </Badge>
                         )}
                       </div>

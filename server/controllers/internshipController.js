@@ -4,9 +4,12 @@ const Company = require("../models/Company");
 
 exports.getAll = async (req, res, next) => {
   try {
-    const { domain, workMode, location, minStipend, maxDuration, q, skill, sort } = req.query;
+    const { domain, workMode, location, minStipend, maxDuration, q, skill, sort, includePending } = req.query;
 
-    let internships = await Internship.find({ isActive: true }).lean();
+    // Public listing only exposes APPROVED, active internships. Admin/company
+    // management UIs pass includePending=1 to see the full pipeline.
+    const statusFilter = includePending === "1" ? {} : { status: "APPROVED" };
+    let internships = await Internship.find({ isActive: true, ...statusFilter }).lean();
 
     let list = internships.map((i) => ({
       id: i._id.toString(),
@@ -25,6 +28,8 @@ exports.getAll = async (req, res, next) => {
       openings: i.openings,
       deadline: i.deadline ? new Date(i.deadline).toISOString() : undefined,
       isActive: i.isActive,
+      status: i.status,
+      rejectionReason: i.rejectionReason || undefined,
       createdAt: new Date(i.createdAt).toISOString(),
     }));
 
@@ -89,7 +94,7 @@ exports.getById = async (req, res, next) => {
         company: company ? { id: company._id.toString(), name: company.name, email: company.email, logoUrl: company.logoUrl || undefined, industry: company.industry || undefined, description: company.description || undefined, website: company.website || undefined, location: company.location || undefined, size: company.size || undefined, verified: company.verified, approved: company.approved, rating: company.rating } : undefined,
         description: i.description, responsibilities: i.responsibilities || [], requirements: i.requirements || [], benefits: i.benefits || [], skills: i.skills || [],
         domain: i.domain, location: i.location, workMode: i.workMode, duration: i.duration, stipend: i.stipend, openings: i.openings,
-        deadline: i.deadline ? new Date(i.deadline).toISOString() : undefined, isActive: i.isActive, createdAt: new Date(i.createdAt).toISOString(),
+        deadline: i.deadline ? new Date(i.deadline).toISOString() : undefined, isActive: i.isActive, status: i.status, rejectionReason: i.rejectionReason || undefined, createdAt: new Date(i.createdAt).toISOString(),
       },
     });
   } catch (err) { next(err); }
@@ -102,11 +107,21 @@ exports.create = async (req, res, next) => {
       return res.status(400).json({ error: "Missing required fields" });
     }
 
+    // SECURITY: a company user must belong to a real company; never fall back
+    // to a hardcoded company account. New postings start as PENDING until an
+    // admin approves them.
+    const companyId = req.user.companyId;
+    if (!companyId) {
+      return res.status(403).json({ error: "Your account is not linked to a company. Contact an admin." });
+    }
+
     const created = await Internship.create({
-      title, companyId: req.user.companyId || "co_flipkart", description,
+      title, companyId, description,
       responsibilities: responsibilities || [], requirements: requirements || [], benefits: benefits || [], skills: skills || [],
       domain, location, workMode, duration: Number(duration) || 12, stipend: Number(stipend) || 0, openings: Number(openings) || 1,
       deadline: deadline ? new Date(deadline) : null,
+      status: "PENDING",
+      isActive: true,
     });
 
     return res.json({
@@ -114,7 +129,80 @@ exports.create = async (req, res, next) => {
         responsibilities: created.responsibilities, requirements: created.requirements, benefits: created.benefits, skills: created.skills,
         domain: created.domain, location: created.location, workMode: created.workMode, duration: created.duration, stipend: created.stipend,
         openings: created.openings, deadline: created.deadline ? new Date(created.deadline).toISOString() : undefined,
-        isActive: created.isActive, createdAt: new Date(created.createdAt).toISOString() },
+        isActive: created.isActive, status: created.status, createdStatus: created.status, createdAt: new Date(created.createdAt).toISOString() },
     });
+  } catch (err) { next(err); }
+};
+
+// A company user's own internships, including PENDING ones awaiting approval.
+exports.getMyInternships = async (req, res, next) => {
+  try {
+    const companyId = req.user.companyId;
+    if (!companyId) return res.status(403).json({ error: "Account not linked to a company" });
+    const internships = await Internship.find({ companyId }).sort({ createdAt: -1 }).lean();
+    return res.json({
+      internships: internships.map((i) => ({
+        id: i._id.toString(), title: i.title, companyId: i.companyId,
+        description: i.description, responsibilities: i.responsibilities || [], requirements: i.requirements || [], benefits: i.benefits || [], skills: i.skills || [],
+        domain: i.domain, location: i.location, workMode: i.workMode, duration: i.duration, stipend: i.stipend, openings: i.openings,
+        deadline: i.deadline ? new Date(i.deadline).toISOString() : undefined, isActive: i.isActive, status: i.status, rejectionReason: i.rejectionReason || undefined,
+        createdAt: new Date(i.createdAt).toISOString(),
+      })),
+    });
+  } catch (err) { next(err); }
+};
+
+// Edit a company's own internship (own-company ownership enforced).
+exports.updateMyInternship = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { title, description, skills, domain, location, workMode, duration, stipend, openings, deadline, responsibilities, requirements, benefits } = req.body;
+    const internship = mongoose.isValidObjectId(id)
+      ? await Internship.findById(id)
+      : await Internship.collection.findOne({ _id: id });
+    if (!internship) return res.status(404).json({ error: "Internship not found" });
+    if (String(internship.companyId) !== String(req.user.companyId)) {
+      return res.status(403).json({ error: "You can only edit your own internships" });
+    }
+    internship.title = title || internship.title;
+    internship.description = description || internship.description;
+    internship.domain = domain || internship.domain;
+    internship.location = location || internship.location;
+    internship.workMode = workMode || internship.workMode;
+    internship.duration = duration !== undefined ? Number(duration) : internship.duration;
+    internship.stipend = stipend !== undefined ? Number(stipend) : internship.stipend;
+    internship.openings = openings !== undefined ? Number(openings) : internship.openings;
+    internship.deadline = deadline ? new Date(deadline) : internship.deadline;
+    if (Array.isArray(skills)) internship.skills = skills;
+    if (Array.isArray(responsibilities)) internship.responsibilities = responsibilities;
+    if (Array.isArray(requirements)) internship.requirements = requirements;
+    if (Array.isArray(benefits)) internship.benefits = benefits;
+    internship.markModified("skills");
+    const saved = await internship.save();
+    return res.json({
+      internship: {
+        id: saved._id.toString(), title: saved.title, companyId: saved.companyId, status: saved.status,
+        description: saved.description, domain: saved.domain, location: saved.location, workMode: saved.workMode,
+        duration: saved.duration, stipend: saved.stipend, openings: saved.openings,
+        deadline: saved.deadline ? new Date(saved.deadline).toISOString() : undefined,
+        isActive: saved.isActive, createdAt: new Date(saved.createdAt).toISOString(),
+      },
+    });
+  } catch (err) { next(err); }
+};
+
+// Delete a company's own internship (own-company ownership enforced).
+exports.deleteMyInternship = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const internship = mongoose.isValidObjectId(id)
+      ? await Internship.findById(id)
+      : await Internship.collection.findOne({ _id: id });
+    if (!internship) return res.status(404).json({ error: "Internship not found" });
+    if (String(internship.companyId) !== String(req.user.companyId)) {
+      return res.status(403).json({ error: "You can only delete your own internships" });
+    }
+    await Internship.deleteOne({ _id: internship._id });
+    return res.json({ success: true });
   } catch (err) { next(err); }
 };

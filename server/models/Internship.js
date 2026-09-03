@@ -16,10 +16,13 @@ const internshipSchema = new mongoose.Schema({
   openings: { type: Number, default: 1 },
   deadline: { type: Date },
   isActive: { type: Boolean, default: true },
+  status: { type: String, enum: ["PENDING", "APPROVED", "REJECTED", "EXPIRED"], default: "PENDING" },
+  rejectionReason: { type: String },
 }, { timestamps: true });
 
 internshipSchema.index({ companyId: 1 });
 internshipSchema.index({ domain: 1 });
 internshipSchema.index({ isActive: 1 });
+internshipSchema.index({ status: 1 });
 
 module.exports = mongoose.model("Internship", internshipSchema);

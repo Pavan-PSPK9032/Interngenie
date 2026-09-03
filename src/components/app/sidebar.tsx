@@ -36,7 +36,8 @@ export function Sidebar() {
   const adminItems = [
     { label: "Dashboard", view: "admin-dashboard", icon: LayoutDashboard },
     { label: "Companies", view: "admin-companies", icon: Building2 },
-    { label: "Users", view: "admin-internships", icon: UserIcon },
+    { label: "Internships", view: "admin-internships", icon: Briefcase },
+    { label: "Users", view: "admin-users", icon: UserIcon },
     { label: "Reports", view: "admin-reports", icon: BarChart3 },
     { label: "AI Analytics", view: "admin-ai-dashboard", icon: Brain },
   ];

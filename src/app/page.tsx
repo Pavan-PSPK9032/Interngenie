@@ -23,6 +23,7 @@ import { CompanyApplicants } from "@/components/app/company-applicants";
 import { AdminDashboard } from "@/components/app/admin-dashboard";
 import { AdminCompanies } from "@/components/app/admin-companies";
 import { AdminUsers } from "@/components/app/admin-users";
+import { AdminInternships } from "@/components/app/admin-internships";
 import { AdminReports } from "@/components/app/admin-reports";
 import { AdminAIDashboard } from "@/components/app/admin-ai-dashboard";
 import { CompanySchedule } from "@/components/app/company-schedule";
@@ -61,7 +62,7 @@ export default function Home() {
     const protectedViews = [
       "student-dashboard", "student-profile", "student-applications",
       "company-dashboard", "company-post-internship", "company-applicants", "company-schedule",
-      "admin-dashboard", "admin-companies", "admin-internships", "admin-reports", "admin-ai-dashboard",
+      "admin-dashboard", "admin-companies", "admin-internships", "admin-users", "admin-reports", "admin-ai-dashboard",
       "resume-builder", "ats-checker", "interview-prep",
     ];
     if (!user && protectedViews.includes(view)) {
@@ -71,7 +72,7 @@ export default function Home() {
     if (user) {
       const studentViews = ["student-dashboard", "student-profile", "student-applications", "resume-builder", "ats-checker", "interview-prep", "profile-wizard"];
       const companyViews = ["company-dashboard", "company-post-internship", "company-applicants", "company-schedule"];
-      const adminViews = ["admin-dashboard", "admin-companies", "admin-internships", "admin-reports", "admin-ai-dashboard"];
+      const adminViews = ["admin-dashboard", "admin-companies", "admin-internships", "admin-users", "admin-reports", "admin-ai-dashboard"];
       if (user.role === "STUDENT" && (companyViews.includes(view) || adminViews.includes(view))) {
         navigate("student-dashboard");
       } else if (user.role === "COMPANY" && (studentViews.includes(view) || adminViews.includes(view))) {
@@ -112,6 +113,8 @@ export default function Home() {
       case "admin-companies":
         return user ? <AdminCompanies /> : <AuthView />;
       case "admin-internships":
+        return user ? <AdminInternships /> : <AuthView />;
+      case "admin-users":
         return user ? <AdminUsers /> : <AuthView />;
       case "admin-reports":
         return user ? <AdminReports /> : <AuthView />;

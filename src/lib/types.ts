@@ -15,6 +15,7 @@ export type ViewKey =
   | "admin-dashboard"
   | "admin-companies"
   | "admin-internships"
+  | "admin-users"
   | "admin-reports"
   | "company-schedule"
   | "auth"

@@ -16,7 +16,14 @@ exports.getAll = async (req, res, next) => {
 exports.markRead = async (req, res, next) => {
   try {
     const { id } = req.body;
-    const updated = await Notification.findByIdAndUpdate(id, { read: true }, { new: true }).lean();
+    if (!id) return res.status(400).json({ error: "id is required" });
+    // SECURITY: only the owner of a notification may mark it as read.
+    const updated = await Notification.findOneAndUpdate(
+      { _id: id, userId: req.user.id },
+      { read: true },
+      { new: true }
+    ).lean();
+    if (!updated) return res.status(404).json({ error: "Notification not found" });
     return res.json({ notification: updated });
   } catch (err) { next(err); }
 };

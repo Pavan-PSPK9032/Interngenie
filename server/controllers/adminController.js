@@ -1,3 +1,4 @@
+const mongoose = require("mongoose");
 const User = require("../models/User");
 const Company = require("../models/Company");
 const Internship = require("../models/Internship");
@@ -6,11 +7,12 @@ const ATSReport = require("../models/ATSReport");
 
 exports.getStats = async (req, res, next) => {
   try {
-    const [totalStudents, totalCompanies, totalInternships, totalApplications] = await Promise.all([
+    const [totalStudents, totalCompanies, totalInternships, totalApplications, pendingCompanies] = await Promise.all([
       User.countDocuments({ role: "STUDENT" }),
       Company.countDocuments(),
       Internship.countDocuments({ isActive: true }),
       Application.countDocuments(),
+      Company.countDocuments({ approved: false }),
     ]);
 
     const appsByStatus = await Application.aggregate([{ $group: { _id: "$status", count: { $sum: 1 } } }]);
@@ -44,11 +46,11 @@ exports.getStats = async (req, res, next) => {
       const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
       const label = d.toLocaleString("en-US", { month: "short" });
       const count = await Application.countDocuments({ createdAt: { $gte: d, $lt: new Date(d.getFullYear(), d.getMonth() + 1, 1) } });
-      months.push({ name: label, value: count + Math.floor(Math.random() * 30) + 10 });
+      months.push({ name: label, value: count });
     }
 
     return res.json({
-      totals: { totalStudents, totalCompanies, totalInternships, totalApplications, activeUsers: totalStudents, pendingCompanies: 0 },
+      totals: { totalStudents, totalCompanies, totalInternships, totalApplications, activeUsers: totalStudents, pendingCompanies },
       appsByStatus: appsByStatus.map((s) => ({ name: s._id, value: s.count })),
       internshipsByDomain: internshipsByDomain.map((d) => ({ name: d._id, value: d.count })),
       companyStats,
@@ -202,5 +204,178 @@ exports.getAIDashboard = async (req, res, next) => {
       recommendationAccuracy,
       internshipSuccessRate,
     });
+  } catch (err) { next(err); }
+};
+
+// ---------------------------------------------------------------------------
+// Admin internship management (approval workflow)
+// ---------------------------------------------------------------------------
+
+exports.getInternships = async (req, res, next) => {
+  try {
+    const { q, status, domain, location, company, page = 1, limit = 20 } = req.query;
+    const skip = (Math.max(1, parseInt(page)) - 1) * parseInt(limit);
+
+    const filter = {};
+    if (status) filter.status = status;
+    if (domain) filter.domain = domain;
+    if (location) filter.location = new RegExp(location, "i");
+    if (q) {
+      filter.$or = [
+        { title: new RegExp(q, "i") },
+        { description: new RegExp(q, "i") },
+        { domain: new RegExp(q, "i") },
+      ];
+    }
+
+    let internships = await Internship.find(filter)
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(parseInt(limit))
+      .lean();
+    const total = await Internship.countDocuments(filter);
+
+    if (company) {
+      const companies = await Company.find({ name: new RegExp(company, "i") }).select("_id").lean();
+      const ids = companies.map((c) => c._id.toString());
+      internships = internships.filter((i) => ids.includes(String(i.companyId)));
+    }
+
+    const companyIds = [...new Set(internships.map((i) => String(i.companyId)))];
+    const validCompanies = await Company.find({ _id: { $in: companyIds.filter((id) => mongoose.isValidObjectId(id)) } }).lean();
+    const companyMap = {};
+    validCompanies.forEach((c) => { companyMap[c._id.toString()] = c; });
+
+    return res.json({
+      internships: internships.map((i) => {
+        const comp = companyMap[String(i.companyId)];
+        return {
+          id: i._id.toString(), title: i.title, companyId: i.companyId,
+          company: comp ? { id: comp._id.toString(), name: comp.name, status: comp.status, approved: comp.approved, verified: comp.verified } : undefined,
+          description: i.description, responsibilities: i.responsibilities || [], requirements: i.requirements || [], benefits: i.benefits || [], skills: i.skills || [],
+          domain: i.domain, location: i.location, workMode: i.workMode, duration: i.duration, stipend: i.stipend, openings: i.openings,
+          deadline: i.deadline ? new Date(i.deadline).toISOString() : undefined, isActive: i.isActive, status: i.status, rejectionReason: i.rejectionReason || undefined,
+          createdAt: new Date(i.createdAt).toISOString(),
+        };
+      }),
+      total,
+      page: parseInt(page),
+      pages: Math.ceil(total / parseInt(limit)),
+    });
+  } catch (err) { next(err); }
+};
+
+exports.updateInternship = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { status, isActive, rejectionReason, title, description, skills } = req.body;
+
+    const internship = mongoose.isValidObjectId(id)
+      ? await Internship.findById(id)
+      : await Internship.collection.findOne({ _id: id });
+    if (!internship) return res.status(404).json({ error: "Internship not found" });
+
+    const updateData = {};
+    if (status !== undefined) {
+      const allowed = ["PENDING", "APPROVED", "REJECTED", "EXPIRED"];
+      if (!allowed.includes(status)) return res.status(400).json({ error: "Invalid status" });
+      updateData.status = status;
+      updateData.isActive = status === "APPROVED" || status === "PENDING";
+      if (status === "EXPIRED") updateData.isActive = false;
+      if (status === "APPROVED") updateData.isActive = true;
+      if (rejectionReason !== undefined) updateData.rejectionReason = status === "REJECTED" ? rejectionReason : undefined;
+    }
+    if (typeof isActive === "boolean") updateData.isActive = isActive;
+    if (title !== undefined && String(title).trim()) updateData.title = String(title).trim();
+    if (description !== undefined && String(description).trim()) updateData.description = String(description).trim();
+    if (Array.isArray(skills)) updateData.skills = skills;
+
+    let updated;
+    if (mongoose.isValidObjectId(id)) {
+      updated = await Internship.findByIdAndUpdate(id, updateData, { new: true }).lean();
+    } else {
+      updated = await Internship.collection.findOneAndUpdate(
+        { _id: id },
+        { $set: updateData },
+        { returnDocument: "after" }
+      );
+    }
+
+    // Notify the company that posted this internship.
+    if (status && internship.companyId && mongoose.isValidObjectId(internship.companyId)) {
+      const Notification = require("../models/Notification");
+      const companyUser = await User.findOne({ companyId: String(internship.companyId), role: "COMPANY" }).lean();
+      if (companyUser) {
+        const msg =
+          status === "APPROVED" ? `Your internship "${internship.title}" has been approved and is now live.` :
+          status === "REJECTED" ? `Your internship "${internship.title}" was rejected.${rejectionReason ? ` Reason: ${rejectionReason}` : ""}` :
+          status === "EXPIRED" ? `Your internship "${internship.title}" has been marked as expired.` :
+          `Your internship "${internship.title}" status changed to ${status}.`;
+        await Notification.create({
+          userId: String(companyUser._id),
+          title: status === "APPROVED" ? "Internship approved" : "Internship update",
+          message: msg,
+          type: status === "REJECTED" ? "WARNING" : "SUCCESS",
+        }).catch(() => {});
+      }
+    }
+
+    return res.json({ internship: updated });
+  } catch (err) { next(err); }
+};
+
+exports.deleteInternship = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const internship = mongoose.isValidObjectId(id)
+      ? await Internship.findByIdAndDelete(id).lean()
+      : await Internship.collection.findOneAndDelete({ _id: id });
+    if (!internship) return res.status(404).json({ error: "Internship not found" });
+    return res.json({ success: true });
+  } catch (err) { next(err); }
+};
+
+// ---------------------------------------------------------------------------
+// Admin company management
+// ---------------------------------------------------------------------------
+
+exports.getAllCompaniesAdmin = async (req, res, next) => {
+  try {
+    const { q, status, page = 1, limit = 20 } = req.query;
+    const skip = (Math.max(1, parseInt(page)) - 1) * parseInt(limit);
+    const filter = {};
+    if (status) filter.status = status;
+    if (q) filter.name = new RegExp(q, "i");
+
+    const [companies, total] = await Promise.all([
+      Company.find(filter).sort({ createdAt: -1 }).skip(skip).limit(parseInt(limit)).lean(),
+      Company.countDocuments(filter),
+    ]);
+
+    return res.json({
+      companies: companies.map((c) => ({
+        id: c._id.toString(), name: c.name, email: c.email,
+        logoUrl: c.logoUrl || undefined, industry: c.industry || undefined,
+        description: c.description || undefined, website: c.website || undefined,
+        location: c.location || undefined, size: c.size || undefined,
+        verified: c.verified, approved: c.approved, rating: c.rating,
+        status: c.status, rejectionReason: c.rejectionReason || undefined,
+        createdAt: c.createdAt ? new Date(c.createdAt).toISOString() : undefined,
+      })),
+      total,
+      page: parseInt(page),
+      pages: Math.ceil(total / parseInt(limit)),
+    });
+  } catch (err) { next(err); }
+};
+
+exports.deleteCompany = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    if (!mongoose.isValidObjectId(id)) return res.status(400).json({ error: "Invalid id" });
+    const company = await Company.findByIdAndDelete(id).lean();
+    if (!company) return res.status(404).json({ error: "Company not found" });
+    await Internship.deleteMany({ companyId: id }).catch(() => {});
+    return res.json({ success: true });
   } catch (err) { next(err); }
 };
