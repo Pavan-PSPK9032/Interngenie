@@ -1,4 +1,4 @@
-const CACHE_VERSION = "v1";
+const CACHE_VERSION = "v2";
 const STATIC_CACHE = `interngenie-static-${CACHE_VERSION}`;
 const API_CACHE = `interngenie-api-${CACHE_VERSION}`;
 const NAVIGATION_CACHE = `interngenie-nav-${CACHE_VERSION}`;
