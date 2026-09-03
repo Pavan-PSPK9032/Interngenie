@@ -27,3 +27,14 @@ exports.markRead = async (req, res, next) => {
     return res.json({ notification: updated });
   } catch (err) { next(err); }
 };
+
+// Mark all of the current user's notifications as read (scoped to owner).
+exports.markAllRead = async (req, res, next) => {
+  try {
+    const result = await Notification.updateMany(
+      { userId: req.user.id, read: false },
+      { read: true }
+    );
+    return res.json({ success: true, modified: result.modifiedCount || 0 });
+  } catch (err) { next(err); }
+};

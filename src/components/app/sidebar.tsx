@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import {
   LayoutDashboard, Briefcase, FileText, ClipboardCheck,
   Bookmark, MessageSquare, User as UserIcon, Building2, Calendar,
-  BarChart3, Brain, PanelLeftClose, PanelLeft,
+  BarChart3, Brain, PanelLeftClose, PanelLeft, ScrollText,
 } from "lucide-react";
 import { useApp } from "@/lib/store";
 import { useSidebar } from "@/lib/sidebar-store";
@@ -32,12 +32,15 @@ export function Sidebar() {
     { label: "Post Internship", view: "company-post-internship", icon: Briefcase },
     { label: "Applicants", view: "company-applicants", icon: UserIcon },
     { label: "Schedule", view: "company-schedule", icon: Calendar },
+    { label: "Company Profile", view: "company-profile", icon: Building2 },
   ];
   const adminItems = [
     { label: "Dashboard", view: "admin-dashboard", icon: LayoutDashboard },
     { label: "Companies", view: "admin-companies", icon: Building2 },
     { label: "Internships", view: "admin-internships", icon: Briefcase },
+    { label: "Applications", view: "admin-applications", icon: Briefcase },
     { label: "Users", view: "admin-users", icon: UserIcon },
+    { label: "Audit Log", view: "admin-audit", icon: ScrollText },
     { label: "Reports", view: "admin-reports", icon: BarChart3 },
     { label: "AI Analytics", view: "admin-ai-dashboard", icon: Brain },
   ];

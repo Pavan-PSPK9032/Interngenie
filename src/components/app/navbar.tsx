@@ -5,8 +5,7 @@ import {
   LayoutDashboard, Briefcase, User as UserIcon, LogOut,
   ChevronDown, Building2, Heart, Bookmark,
   FileText, ClipboardCheck, Calendar, BarChart3,
-  Brain, Bot, PanelLeft, ShieldCheck, Undo2, Redo2,
-} from "lucide-react";
+  Brain, Bot, PanelLeft, ShieldCheck, Undo2, Redo2, ScrollText,} from "lucide-react";
 import { useState, useEffect } from "react";
 import { useApp } from "@/lib/store";
 import { useSidebar } from "@/lib/sidebar-store";
@@ -26,11 +25,52 @@ import { cn } from "@/lib/utils";
 import { GlobalSearch } from "@/components/app/global-search";
 
 export function Navbar() {
-  const { user, view, navigate, theme, toggleTheme, logout, notifications, savedInternships, setChatbotOpen, historyUndo, historyRedo, undo, redo, historyTick, lastHistoryAction } = useApp();
+  const { user, view, navigate, theme, toggleTheme, logout, notifications, notificationsLoaded, setNotifications, markNotificationRead, markAllNotificationsRead, savedInternships, setChatbotOpen, historyUndo, historyRedo, undo, redo, historyTick, lastHistoryAction } = useApp();
   const { collapsed, toggle } = useSidebar();
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const unread = notifications.filter((n) => !n.read).length;
+
+  // Fetch real notifications from the backend when a user is logged in.
+  useEffect(() => {
+    if (!user || notificationsLoaded) return;
+    const token = useApp.getState().token;
+    fetch("/api/notifications", {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data?.notifications) setNotifications(data.notifications);
+      })
+      .catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
+
+  const markAllRead = async () => {
+    if (unread === 0) return;
+    try {
+      const token = useApp.getState().token;
+      await fetch("/api/notifications/mark-all-read", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      });
+      markAllNotificationsRead();
+    } catch {
+      /* ignore */
+    }
+  };
+
+  const openNotification = async (n: { id: string; read: boolean }) => {
+    if (!n.read) {
+      markNotificationRead(n.id);
+      const token = useApp.getState().token;
+      fetch("/api/notifications", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ id: n.id }),
+      }).catch(() => {});
+    }
+  };
 
   // Global undo/redo keyboard shortcuts (Ctrl+Z / Ctrl+Y / Ctrl+Shift+Z).
   // Inside text fields the browser handles native undo so form editing is preserved.
@@ -74,6 +114,8 @@ export function Navbar() {
     navLinks.push({ label: "Dashboard", view: "admin-dashboard", icon: LayoutDashboard });
     navLinks.push({ label: "Companies", view: "admin-companies", icon: Building2 });
     navLinks.push({ label: "Internships", view: "admin-internships", icon: Briefcase });
+    navLinks.push({ label: "Applications", view: "admin-applications", icon: Briefcase });
+    navLinks.push({ label: "Audit Log", view: "admin-audit", icon: ScrollText });
     navLinks.push({ label: "Reports", view: "admin-reports", icon: BarChart3 });
     navLinks.push({ label: "AI Analytics", view: "admin-ai-dashboard", icon: Brain });
   }
@@ -269,8 +311,18 @@ export function Navbar() {
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-80 glass-card border-white/10">
                     <DropdownMenuLabel className="flex items-center justify-between">
-                      Notifications
-                      {unread > 0 && <Badge variant="secondary" className="text-[10px]">{unread} new</Badge>}
+                      <span>Notifications</span>
+                      <div className="flex items-center gap-2">
+                        {unread > 0 && <Badge variant="secondary" className="text-[10px]">{unread} new</Badge>}
+                        {unread > 0 && (
+                          <button
+                            onClick={markAllRead}
+                            className="text-[11px] text-primary hover:underline"
+                          >
+                            Mark all read
+                          </button>
+                        )}
+                      </div>
                     </DropdownMenuLabel>
                     <DropdownMenuSeparator />
                     {notifications.length === 0 ? (
@@ -281,6 +333,7 @@ export function Navbar() {
                       notifications.slice(0, 6).map((n) => (
                         <DropdownMenuItem
                           key={n.id}
+                          onClick={() => openNotification(n)}
                           className="flex flex-col items-start py-2 cursor-pointer"
                         >
                           <div className="flex w-full items-start gap-2">

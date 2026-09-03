@@ -44,8 +44,10 @@ interface AppState {
 
   // Notifications
   notifications: Notification[];
+  notificationsLoaded: boolean;
   setNotifications: (n: Notification[]) => void;
   markNotificationRead: (id: string) => void;
+  markAllNotificationsRead: () => void;
 
   // Chatbot
   chatbotOpen: boolean;
@@ -111,7 +113,7 @@ export const useApp = create<AppState>()(
         set({ view: roleDefault[user.role] });
       },
       logout: () => {
-        set({ user: null, token: null, view: "home" });
+        set({ user: null, token: null, view: "home", notifications: [], notificationsLoaded: false });
         get().clearHistory();
       },
       updateUser: (patch) => {
@@ -137,12 +139,17 @@ export const useApp = create<AppState>()(
         })),
 
       notifications: [],
-      setNotifications: (notifications) => set({ notifications }),
+      notificationsLoaded: false,
+      setNotifications: (notifications) => set({ notifications, notificationsLoaded: true }),
       markNotificationRead: (id) =>
         set((s) => ({
           notifications: s.notifications.map((n) =>
             n.id === id ? { ...n, read: true } : n
           ),
+        })),
+      markAllNotificationsRead: () =>
+        set((s) => ({
+          notifications: s.notifications.map((n) => ({ ...n, read: true })),
         })),
 
       chatbotOpen: false,

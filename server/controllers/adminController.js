@@ -100,8 +100,20 @@ exports.getAuditLogs = async (req, res, next) => {
       AuditLog.countDocuments(filter),
     ]);
 
+    // Attach acting-user names/emails for readable UI display.
+    const userIds = [...new Set(logs.map((l) => l.userId))];
+    const users = await User.find({ _id: { $in: userIds } }).select("name email role").lean();
+    const userMap = {};
+    users.forEach((u) => { userMap[String(u._id)] = u; });
+
     return res.json({
-      logs,
+      logs: logs.map((l) => ({
+        ...l,
+        id: l._id.toString(),
+        user: userMap[String(l.userId)]
+          ? { name: userMap[String(l.userId)].name, email: userMap[String(l.userId)].email, role: userMap[String(l.userId)].role }
+          : undefined,
+      })),
       total,
       page,
       pages: Math.ceil(total / limit),
