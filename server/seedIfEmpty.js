@@ -8,20 +8,52 @@ const { COMPANIES, INTERNSHIPS, NOTIFICATIONS, DEMO_USERS } = require("./data/se
 async function seedDemoIfEmpty() {
   const seeded = [];
 
+  // Map seed string keys (e.g. "co_flipkart") to generated ObjectIds so the
+  // matching internships/company account can reference them. MongoDB's newer
+  // Mongoose rejects hand-written string document `_id`s like "co_tcs", so we
+  // let MongoDB generate ObjectIds and translate the cross-references.
+  const companyKeyToId = {};
+
   const companyCount = await Company.countDocuments();
   if (companyCount === 0) {
-    await Company.insertMany(
-      COMPANIES.map((c) => ({ ...c, status: c.status || "APPROVED" }))
-    );
-    seeded.push(`companies (${COMPANIES.length})`);
+    const docs = [];
+    for (const c of COMPANIES) {
+      const key = c._id; // e.g. "co_flipkart"
+      const { _id, name, ...rest } = c;
+      const company = await Company.create({
+        name,
+        ...rest,
+        status: c.status || "APPROVED",
+      });
+      companyKeyToId[key] = company._id.toString();
+      docs.push(company);
+    }
+    seeded.push(`companies (${docs.length})`);
+  }
+
+  // Even if companies already exist, map their string keys to ids if the seed
+  // company key references are still needed by internships/users below.
+  const existingCompanies = companyCount > 0 ? await Company.find().lean() : [];
+  for (const c of COMPANIES) {
+    if (!companyKeyToId[c._id]) {
+      const match = existingCompanies.find((ec) => String(ec._id) === c._id || ec.name === c.name);
+      if (match) companyKeyToId[c._id] = String(match._id);
+    }
   }
 
   const internshipCount = await Internship.countDocuments();
   if (internshipCount === 0) {
-    await Internship.insertMany(
-      INTERNSHIPS.map((i) => ({ ...i, status: i.status || "APPROVED", isActive: i.isActive !== undefined ? i.isActive : true }))
-    );
-    seeded.push(`internships (${INTERNSHIPS.length})`);
+    const docs = [];
+    for (const i of INTERNSHIPS) {
+      const { _id, companyId, ...rest } = i;
+      docs.push(await Internship.create({
+        ...rest,
+        companyId: companyKeyToId[companyId] || companyId,
+        status: i.status || "APPROVED",
+        isActive: i.isActive !== undefined ? i.isActive : true,
+      }));
+    }
+    seeded.push(`internships (${docs.length})`);
   }
 
   const demoIds = {};
@@ -29,8 +61,13 @@ async function seedDemoIfEmpty() {
   for (const demo of DEMO_USERS) {
     const existing = await User.findOne({ email: demo.email });
     if (!existing) {
+      const patch = { ...demo };
+      // Point the company demo account at the seeded company's real id.
+      if (demo.role === "COMPANY" && demo.companyId && companyKeyToId[demo.companyId]) {
+        patch.companyId = companyKeyToId[demo.companyId];
+      }
       const u = await User.create({
-        ...demo,
+        ...patch,
         passwordHash: bcrypt.hashSync(demo.password, 10),
       });
       demoIds[demo.role] = u._id.toString();

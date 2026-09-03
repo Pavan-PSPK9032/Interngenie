@@ -51,7 +51,7 @@ exports.getAll = async (req, res, next) => {
     let studentMap = {};
     if (user.role !== "STUDENT") {
       const stdIds = [...new Set(apps.map((a) => a.studentId))];
-      const { default: User } = require("../models/User");
+      const User = require("../models/User");
       const students = await User.find({ _id: { $in: stdIds } }).lean();
       students.forEach((s) => { studentMap[s._id.toString()] = s; });
     }
@@ -102,7 +102,7 @@ exports.apply = async (req, res, next) => {
     );
 
     // Check user's resume and ATS score
-    const { default: User } = require("../models/User");
+    const User = require("../models/User");
     const userDoc = await User.findById(req.user.id).lean();
     const resumeText = userDoc?.resumeText || null;
 
@@ -166,7 +166,7 @@ exports.update = async (req, res, next) => {
 
       if (status === "SELECTED") {
         const company = internship && internship.companyId && mongoose.isValidObjectId(internship.companyId) ? await Company.findById(internship.companyId).lean() : null;
-        const { default: User } = require("../models/User");
+        const User = require("../models/User");
         const student = await User.findById(app.studentId).lean();
         const credId = "CERT-" + Math.random().toString(36).slice(2, 10).toUpperCase();
         await Certificate.create({
