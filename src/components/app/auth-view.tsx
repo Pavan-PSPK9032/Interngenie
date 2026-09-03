@@ -67,7 +67,6 @@ export function AuthView() {
   const [googleLoading, setGoogleLoading] = useState(false);
   const [googleReady, setGoogleReady] = useState(false);
   const [googleScriptLoaded, setGoogleScriptLoaded] = useState(false);
-  const googleInitialized = useRef(false);
   const googleButtonRef = useRef<HTMLDivElement | null>(null);
   const [form, setForm] = useState({
     name: "",
@@ -150,8 +149,24 @@ export function AuthView() {
     };
   }, [GOOGLE_CLIENT_ID]);
 
+  // Module-scoped flag: initialize() must only run once per page load,
+  // even if AuthView remounts (e.g. navigating auth <-> home).
+  const gcsInitialized = useRef<boolean>(
+    typeof window !== "undefined" && !!(window as any).__gcsInitialized
+  );
+
   useEffect(() => {
-    if (!googleScriptLoaded || !GOOGLE_CLIENT_ID || !window.google || googleInitialized.current) return;
+    if (
+      !googleScriptLoaded ||
+      !GOOGLE_CLIENT_ID ||
+      !window.google ||
+      gcsInitialized.current
+    ) {
+      if (!googleScriptLoaded || !GOOGLE_CLIENT_ID) {
+        setGoogleReady(false);
+      }
+      return;
+    }
 
     try {
       window.google.accounts.id.initialize({
@@ -160,7 +175,8 @@ export function AuthView() {
         auto_select: false,
         cancel_on_tap_outside: true,
       });
-      googleInitialized.current = true;
+      (window as any).__gcsInitialized = true;
+      gcsInitialized.current = true;
       setGoogleReady(true);
     } catch {
       setGoogleReady(false);
