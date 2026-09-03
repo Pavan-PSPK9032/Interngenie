@@ -1,3 +1,4 @@
+const mongoose = require("mongoose");
 const Internship = require("../models/Internship");
 const Application = require("../models/Application");
 const { interviewPrep } = require("../utils/aiEngine");
@@ -7,13 +8,6 @@ const sessionStore = new Map();
 exports.generateQuestions = async (req, res, next) => {
   try {
     const { internshipId } = req.body;
-    if (!internshipId) return res.status(400).json({ error: "internshipId is required" });
-
-    const internship = await Internship.findById(internshipId).lean();
-    if (!internship) return res.status(404).json({ error: "Internship not found" });
-
-    const application = await Application.findOne({ studentId: req.user.id, internshipId }).lean();
-    if (!application) return res.status(403).json({ error: "You must have applied to this internship to access interview prep" });
 
     const studentProfile = {
       name: req.user.name,
@@ -23,23 +17,53 @@ exports.generateQuestions = async (req, res, next) => {
       college: req.user.college,
       degree: req.user.degree,
       branch: req.user.branch,
+      preferredRole: req.user.preferredRole || (req.user.interests && req.user.interests[0]) || req.user.branch || undefined,
     };
 
-    const result = interviewPrep(
-      {
+    let internshipContext = null;
+
+    if (internshipId) {
+      let internship = null;
+      if (mongoose.isValidObjectId(internshipId)) {
+        internship = await Internship.findById(internshipId).lean();
+      } else {
+        internship = await Internship.collection.findOne({ _id: internshipId });
+      }
+      if (!internship) return res.status(404).json({ error: "Internship not found" });
+
+      const application = await Application.findOne({
+        studentId: req.user.id,
+        internshipId: { $in: [internshipId, internship._id.toString()] },
+      }).lean();
+      if (!application) {
+        return res.status(403).json({ error: "You must have applied to this internship to access interview prep for it. Leave the field empty for general practice." });
+      }
+
+      internshipContext = {
         domain: internship.domain,
         title: internship.title,
         companyName: internship.companyName || "the company",
         skills: internship.skills || [],
         duration: internship.duration,
-      },
+      };
+    }
+
+    const result = interviewPrep(
+      internshipContext ||
+        {
+          domain: studentProfile.preferredRole || "Software Development",
+          title: internshipId ? "" : "General Interview",
+          companyName: "Anonymous",
+          skills: studentProfile.skills || [],
+          duration: undefined,
+        },
       studentProfile
     );
 
     const sessionId = `session_${req.user.id}_${Date.now()}`;
     sessionStore.set(sessionId, {
       userId: req.user.id,
-      internshipId,
+      internshipId: internshipId || null,
       questions: result.questions.map((q, i) => ({ ...q, id: `${sessionId}_q${i}` })),
       answers: [],
       createdAt: new Date().toISOString(),
